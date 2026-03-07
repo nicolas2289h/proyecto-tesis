@@ -14,7 +14,7 @@ $env:SUPABASE_DB_PASSWORD = "TU_PASSWORD"
 ```
 
 ## Properties clave
-- [application.properties](file:///c:/Users/Usuario/Desktop/TESIS/proyecto-tesis/backend/src/main/resources/application.properties)
+- application.properties
   - server.port=8080
   - spring.datasource.url=...
   - spring.datasource.username=...
