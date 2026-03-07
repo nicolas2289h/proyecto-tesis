@@ -1,8 +1,10 @@
 package com.tesis.demo.controller;
 
+import com.tesis.demo.dto.ApiResponse;
 import com.tesis.demo.dto.LoginRequestDto;
 import com.tesis.demo.dto.LoginResponseDto;
 import com.tesis.demo.service.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +22,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody LoginRequestDto request) {
         LoginResponseDto response = authService.login(request.getEmail(), request.getPassword());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Login exitoso", response));
     }
 }
