@@ -25,6 +25,7 @@ Este backend implementa autenticación con JWT, gestión de usuarios y roles, y 
 - SecurityConfig.java
 - JwtService.java
 - JwtAuthenticationFilter.java
+- CorsConfig.java
 
 ### Autenticación
 - AuthController.java
@@ -43,6 +44,7 @@ Este backend implementa autenticación con JWT, gestión de usuarios y roles, y 
 - UsuarioDto.java
 - RolDto.java
 - AssignRoleDto.java
+- ApiResponse.java
 
 ## Dependencias relevantes (pom.xml)
 - spring-boot-starter-security
@@ -65,3 +67,4 @@ Archivo de propiedades: `application.properties`
 - spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 
 Consulta `docs/setup.md` para variables de entorno y alternativas con Supabase.
+Consulta `docs/endpoints.md` para rutas y payloads.

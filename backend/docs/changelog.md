@@ -8,6 +8,7 @@
 - Endpoint de login: POST /api/v1/auth/login (AuthController + AuthService/Impl).
 - Refactor: lógica de login movida a AuthService/Impl.
 - Creado paquete dto y DTOs de autenticación (LoginRequestDto, LoginResponseDto).
+- Se habilitó CORS para React y se activó en SecurityConfig.
 
 ## Modelo y persistencia
 - Entidades JPA: Usuario, Rol, UsuarioRol.
@@ -21,6 +22,7 @@
   - POST /api/v1/usuarios/{id}/roles (asignación de rol).
 - UsuarioService/Impl: registrar, listar, asignarRol.
 - DTOs para usuarios: UsuarioCreateDto, UsuarioDto, AssignRoleDto, RolDto.
+- ApiResponse agregado para estandarizar respuestas con status numérico, message y data.
 
 ## Configuración
 - application.properties con datasource PostgreSQL y JPA.
