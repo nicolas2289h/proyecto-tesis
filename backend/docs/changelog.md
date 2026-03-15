@@ -20,7 +20,9 @@
   - POST /api/v1/usuarios (registro público).
   - GET /api/v1/usuarios (listado con JWT).
   - POST /api/v1/usuarios/{id}/roles (asignación de rol).
-- UsuarioService/Impl: registrar, listar, asignarRol.
+  - POST /api/v1/usuarios/roles (crear rol).
+  - GET /api/v1/usuarios/roles (listar roles).
+- UsuarioService/Impl: registrar, listar, asignarRol, crearRol, listarRoles.
 - DTOs para usuarios: UsuarioCreateDto, UsuarioDto, AssignRoleDto, RolDto.
 - ApiResponse agregado para estandarizar respuestas con status numérico, message y data.
 

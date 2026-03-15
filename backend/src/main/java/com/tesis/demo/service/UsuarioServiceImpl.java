@@ -1,6 +1,7 @@
 package com.tesis.demo.service;
 
 import com.tesis.demo.dto.AssignRoleDto;
+import com.tesis.demo.dto.RolDto;
 import com.tesis.demo.dto.UsuarioCreateDto;
 import com.tesis.demo.dto.UsuarioDto;
 import com.tesis.demo.model.Rol;
@@ -9,12 +10,14 @@ import com.tesis.demo.model.UsuarioRol;
 import com.tesis.demo.repository.RolRepository;
 import com.tesis.demo.repository.UsuarioRepository;
 import com.tesis.demo.repository.UsuarioRolRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
@@ -60,6 +63,20 @@ public class UsuarioServiceImpl implements UsuarioService {
             usuarioRolRepository.save(usuarioRol);
         }
         return toDto(usuario);
+    }
+
+    @Override
+    public Rol crearRol(RolDto rolDto) {
+        log.info("Inicia crearRol {}", rolDto);
+        Rol nuevoRol = new Rol();
+        nuevoRol.setNombreRol(rolDto.getNombre().toUpperCase());
+        return rolRepository.save(nuevoRol);
+    }
+
+    @Override
+    public List<Rol> listarRoles() {
+        log.info("Inicia listarRoles");
+        return rolRepository.findAll();
     }
 
     private UsuarioDto toDto(Usuario u) {

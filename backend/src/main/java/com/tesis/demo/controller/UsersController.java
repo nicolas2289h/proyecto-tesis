@@ -1,9 +1,7 @@
 package com.tesis.demo.controller;
 
-import com.tesis.demo.dto.ApiResponse;
-import com.tesis.demo.dto.AssignRoleDto;
-import com.tesis.demo.dto.UsuarioCreateDto;
-import com.tesis.demo.dto.UsuarioDto;
+import com.tesis.demo.dto.*;
+import com.tesis.demo.model.Rol;
 import com.tesis.demo.service.UsuarioService;
 
 import org.springframework.http.HttpStatus;
@@ -35,5 +33,16 @@ public class UsersController {
     @PostMapping("/{id}/roles")
     public ResponseEntity<ApiResponse<UsuarioDto>> asignarRol(@PathVariable Long id, @RequestBody AssignRoleDto dto) {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Rol asignado", usuarioService.asignarRol(id, dto)));
+    }
+
+    @PostMapping("/roles")
+    public ResponseEntity<ApiResponse<Rol>> crearNuevoRol(@RequestBody RolDto rolDto) {
+        Rol nuevoRol = usuarioService.crearRol(rolDto);
+        return ResponseEntity.status(201).body(ApiResponse.success(HttpStatus.CREATED.value(), "Nuevo Rol creado", nuevoRol));
+    }
+
+    @GetMapping("/roles")
+    ResponseEntity<ApiResponse<List<Rol>>> listarRoles() {
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), null, usuarioService.listarRoles()));
     }
 }

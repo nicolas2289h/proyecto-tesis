@@ -21,11 +21,22 @@
 
 - POST /api/v1/usuarios/{id}/roles
   - Request: AssignRoleDto { usuarioId, rolId }
-  - Response: UsuarioDto
+  - Response: ApiResponse<UsuarioDto>
   - Controlador: UsersController
   - Seguridad: requiere JWT y rol adecuado (ajustable)
 
 ## Roles
+- POST /api/v1/usuarios/roles
+  - Request: RolDto { nombre }
+  - Response: ApiResponse<Rol>
+  - Controlador: UsersController
+  - Seguridad: requiere JWT
+
+- GET /api/v1/usuarios/roles
+  - Response: ApiResponse<List<Rol>>
+  - Controlador: UsersController
+  - Seguridad: requiere JWT
+
 - Roles soportados: USUARIO, ADMINISTRADOR, COMERCIANTE, MODERADOR
 - Tabla: rol
 - Relación: N–N mediante tabla `usuario_rol`
