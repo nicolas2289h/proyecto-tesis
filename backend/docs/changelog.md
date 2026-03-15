@@ -12,6 +12,9 @@
 
 ## Modelo y persistencia
 - Entidades JPA: Usuario, Rol, UsuarioRol.
+- Entidades del Módulo de Catálogo Maestro: Categoria, Supermercado, Producto, ProductoTienda.
+- Entidades del Módulo de Precios: HistorialPrecio (Series de tiempo).
+- Entidades del Módulo de Listas de Compras: ListaCompra, ItemLista.
 - Repositorios JPA: UsuarioRepository, RolRepository, UsuarioRolRepository.
 - Método existsByUsuarioAndRol en UsuarioRolRepository para evitar duplicados.
 
