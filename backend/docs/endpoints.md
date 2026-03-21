@@ -37,6 +37,37 @@
   - Controlador: UsersController
   - Seguridad: requiere JWT
 
+## Catálogo Maestro
+### Categorías
+- POST /api/v1/categorias
+  - Request: CategoriaDto { nombre }
+  - Response: ApiResponse<CategoriaDto>
+- GET /api/v1/categorias
+  - Response: ApiResponse<List<CategoriaDto>>
+- GET /api/v1/categorias/{id}
+  - Response: ApiResponse<CategoriaDto>
+- PUT /api/v1/categorias/{id}
+  - Request: CategoriaDto { nombre }
+  - Response: ApiResponse<CategoriaDto>
+- DELETE /api/v1/categorias/{id}
+  - Response: ApiResponse<Void>
+
+### Productos (Maestro)
+- POST /api/v1/productos
+  - Request: ProductoDto { nombreGenerico, marca, categoriaId }
+  - Response: ApiResponse<ProductoDto>
+- GET /api/v1/productos
+  - Query Params: nombre, marca, categoriaId, page, size, sort
+  - Response: ApiResponse<Page<ProductoDto>>
+- GET /api/v1/productos/{id}
+  - Response: ApiResponse<ProductoDto>
+- PUT /api/v1/productos/{id}
+  - Request: ProductoDto { nombreGenerico, marca, categoriaId }
+  - Response: ApiResponse<ProductoDto>
+- DELETE /api/v1/productos/{id}
+  - Response: ApiResponse<Void>
+
+## Roles
 - Roles soportados: USUARIO, ADMINISTRADOR, COMERCIANTE, MODERADOR
 - Tabla: rol
 - Relación: N–N mediante tabla `usuario_rol`
