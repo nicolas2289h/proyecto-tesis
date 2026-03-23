@@ -29,6 +29,16 @@
 - DTOs para usuarios: UsuarioCreateDto, UsuarioDto, AssignRoleDto, RolDto.
 - ApiResponse agregado para estandarizar respuestas con status numérico, message y data.
 
+## Estructura de Tiendas
+- Implementado Módulo de Estructura de Tiendas (Supermercados y ProductoTienda).
+- Creados DTOs: `SupermercadoDto`, `ProductoTiendaDto`.
+- Creados servicios e implementaciones: `SupermercadoService`, `ProductoTiendaService`.
+- Creados controladores: `SupermercadoController`, `ProductoTiendaController`.
+- Endpoints añadidos para gestión CRUD de supermercados y mapeo de productos para scraping.
+- Documentación de endpoints actualizada en `endpoints.md`.
+
+## Catálogo Maestro
+
 ## Configuración
 - application.properties con datasource PostgreSQL y JPA.
 - Opción de uso de Supabase como base de datos (sslmode=require) mediante variables de entorno.

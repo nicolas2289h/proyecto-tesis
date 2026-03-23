@@ -67,6 +67,39 @@
 - DELETE /api/v1/productos/{id}
   - Response: ApiResponse<Void>
 
+## Estructura de Tiendas
+### Supermercados
+- POST `/api/v1/supermercados`
+  - Request: `SupermercadoDto { nombre, urlBase }`
+  - Response: `ApiResponse<SupermercadoDto>`
+- GET `/api/v1/supermercados`
+  - Response: `ApiResponse<List<SupermercadoDto>>`
+- GET `/api/v1/supermercados/{id}`
+  - Response: `ApiResponse<SupermercadoDto>`
+- PUT `/api/v1/supermercados/{id}`
+  - Request: `SupermercadoDto { nombre, urlBase }`
+  - Response: `ApiResponse<SupermercadoDto>`
+- DELETE `/api/v1/supermercados/{id}`
+  - Response: `ApiResponse<Void>`
+
+### Mapeo de Productos (ProductoTienda)
+- POST `/api/v1/productos-tienda`
+  - Request: `ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno }`
+  - Response: `ApiResponse<ProductoTiendaDto>`
+- GET `/api/v1/productos-tienda`
+  - Response: `ApiResponse<List<ProductoTiendaDto>>`
+- GET `/api/v1/productos-tienda/{id}`
+  - Response: `ApiResponse<ProductoTiendaDto>`
+- GET `/api/v1/productos-tienda/producto/{productoId}`
+  - Response: `ApiResponse<List<ProductoTiendaDto>>`
+- GET `/api/v1/productos-tienda/supermercado/{supermercadoId}`
+  - Response: `ApiResponse<List<ProductoTiendaDto>>`
+- PUT `/api/v1/productos-tienda/{id}`
+  - Request: `ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno }`
+  - Response: `ApiResponse<ProductoTiendaDto>`
+- DELETE `/api/v1/productos-tienda/{id}`
+  - Response: `ApiResponse<Void>`
+
 ## Roles
 - Roles soportados: USUARIO, ADMINISTRADOR, COMERCIANTE, MODERADOR
 - Tabla: rol
