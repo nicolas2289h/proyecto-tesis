@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { useAuthStore } from '../store/authStore'
+import { AxiosError } from 'axios'
 
 type LoginForm = {
   email: string
@@ -7,9 +10,12 @@ type LoginForm = {
 }
 
 export default function Login() {
+  const navigate = useNavigate()
+  const setAuth = useAuthStore((state) => state.setAuth)
   const [form, setForm] = useState<LoginForm>({ email: '', password: '' })
   const [errors, setErrors] = useState<Partial<LoginForm>>({})
   const [submitting, setSubmitting] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   const validate = (data: LoginForm) => {
     const next: Partial<LoginForm> = {}
@@ -24,16 +30,33 @@ export default function Login() {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
+    setApiError(null)
   }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate(form)) return
     setSubmitting(true)
+    setApiError(null)
     try {
-      // TODO: integrar con backend (POST /api/auth/login)
-      await new Promise((r) => setTimeout(r, 600))
-      alert('Login exitoso (demo)')
+      const response = await api.post('/auth/login', form)
+      const { data } = response.data
+      
+      // El backend devuelve LoginResponseDto: { token, email, roles }
+      // El store espera User: { id, email, nombre }
+      // Como el login no devuelve el id y nombre completos, podemos guardar lo que tenemos
+      setAuth(
+        { id: 0, email: data.email, nombre: data.email.split('@')[0] }, 
+        data.token
+      )
+      
+      navigate('/home')
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        setApiError(error.response?.data?.message || 'Error al iniciar sesión. Verificá tus credenciales.')
+      } else {
+        setApiError('Ocurrió un error inesperado')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -43,6 +66,21 @@ export default function Login() {
     <div className="container">
       <h1 className="title">Iniciar sesión</h1>
       <p className="subtitle">Accedé para comparar precios y gestionar tus listas</p>
+      
+      {apiError && (
+        <div className="error-banner" style={{ 
+          backgroundColor: '#fee2e2', 
+          color: '#dc2626', 
+          padding: '0.75rem', 
+          borderRadius: '0.375rem', 
+          marginBottom: '1rem',
+          fontSize: '0.875rem',
+          textAlign: 'center'
+        }}>
+          {apiError}
+        </div>
+      )}
+
       <form onSubmit={onSubmit} noValidate>
         <div className="field">
           <label className="label" htmlFor="email">Email</label>

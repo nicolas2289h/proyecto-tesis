@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import api from '../api/axios'
+import { AxiosError } from 'axios'
 
 type RegisterForm = {
   name: string
@@ -9,9 +11,11 @@ type RegisterForm = {
 }
 
 export default function Register() {
+  const navigate = useNavigate()
   const [form, setForm] = useState<RegisterForm>({ name: '', email: '', password: '', confirm: '' })
   const [errors, setErrors] = useState<Partial<RegisterForm>>({})
   const [submitting, setSubmitting] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
 
   const validate = (data: RegisterForm) => {
     const next: Partial<RegisterForm> = {}
@@ -20,7 +24,7 @@ export default function Register() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) next.email = 'Email inválido'
     if (!data.password) next.password = 'Ingresá una contraseña'
     else if (data.password.length < 6) next.password = 'Mínimo 6 caracteres'
-    if (!data.confirm) next.confirm = 'Repetí la contraseña'
+    if (!data.confirm) next.confirm = 'Repeti la contraseña'
     else if (data.confirm !== data.password) next.confirm = 'Las contraseñas no coinciden'
     setErrors(next)
     return Object.keys(next).length === 0
@@ -29,16 +33,32 @@ export default function Register() {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
+    setApiError(null)
   }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate(form)) return
     setSubmitting(true)
+    setApiError(null)
     try {
-      // TODO: integrar con backend (POST /api/auth/register)
-      await new Promise((r) => setTimeout(r, 700))
-      alert('Registro exitoso (demo)')
+      // Mapear campos para el backend: name -> nombre
+      const payload = {
+        nombre: form.name,
+        email: form.email,
+        password: form.password
+      }
+      
+      await api.post('/usuarios', payload)
+      
+      alert('Registro exitoso. Ahora podés iniciar sesión.')
+      navigate('/login')
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        setApiError(error.response?.data?.message || 'Error al registrarse. Intentalo de nuevo.')
+      } else {
+        setApiError('Ocurrió un error inesperado')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -48,6 +68,21 @@ export default function Register() {
     <div className="container">
       <h1 className="title">Crear cuenta</h1>
       <p className="subtitle">Registrate para empezar a comparar precios</p>
+
+      {apiError && (
+        <div className="error-banner" style={{ 
+          backgroundColor: '#fee2e2', 
+          color: '#dc2626', 
+          padding: '0.75rem', 
+          borderRadius: '0.375rem', 
+          marginBottom: '1rem',
+          fontSize: '0.875rem',
+          textAlign: 'center'
+        }}>
+          {apiError}
+        </div>
+      )}
+
       <form onSubmit={onSubmit} noValidate>
         <div className="field">
           <label className="label" htmlFor="name">Nombre</label>
