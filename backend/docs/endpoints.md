@@ -10,12 +10,12 @@
 ## Usuarios
 - POST /api/v1/usuarios
   - Request: UsuarioCreateDto { email, password, nombre, estado }
-  - Response: UsuarioDto { id, email, nombre, estado }
+  - Response: UsuarioDto { id, email, nombre, estado, roles }
   - Controlador: UsersController
   - Seguridad: público (permitAll)
 
 - GET /api/v1/usuarios
-  - Response: List<UsuarioDto>
+  - Response: List<UsuarioDto> { id, email, nombre, estado, roles }
   - Controlador: UsersController
   - Seguridad: requiere JWT
 
@@ -99,6 +99,39 @@
   - Response: `ApiResponse<ProductoTiendaDto>`
 - DELETE `/api/v1/productos-tienda/{id}`
   - Response: `ApiResponse<Void>`
+
+## Mis Listas
+- POST `/api/v1/listas`
+  - Request: `ListaCompraCreateDto { nombreLista, favorita }`
+  - Response: `ApiResponse<ListaCompraDto> { id, nombreLista, fechaCreacion, favorita }`
+  - Controlador: `ListaCompraController`
+  - Seguridad: requiere JWT (Principal)
+
+- GET `/api/v1/listas`
+  - Response: `ApiResponse<List<ListaCompraDto>>`
+  - Controlador: `ListaCompraController`
+  - Seguridad: requiere JWT (Principal)
+
+- GET `/api/v1/listas/{id}`
+  - Response: `ApiResponse<ListaCompraDto>`
+  - Controlador: `ListaCompraController`
+  - Seguridad: requiere JWT (Principal)
+
+- PUT `/api/v1/listas/{id}`
+  - Request: `ListaCompraCreateDto { nombreLista, favorita }`
+  - Response: `ApiResponse<ListaCompraDto>`
+  - Controlador: `ListaCompraController`
+  - Seguridad: requiere JWT (Principal)
+
+- DELETE `/api/v1/listas/{id}`
+  - Response: `ApiResponse<Void>`
+  - Controlador: `ListaCompraController`
+  - Seguridad: requiere JWT (Principal)
+
+- PATCH `/api/v1/listas/{id}/favorita`
+  - Response: `ApiResponse<ListaCompraDto>` (Toggle de estado favorita)
+  - Controlador: `ListaCompraController`
+  - Seguridad: requiere JWT (Principal)
 
 ## Roles
 - Roles soportados: USUARIO, ADMINISTRADOR, COMERCIANTE, MODERADOR

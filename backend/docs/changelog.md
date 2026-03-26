@@ -9,13 +9,14 @@
 - Refactor: lógica de login movida a AuthService/Impl.
 - Creado paquete dto y DTOs de autenticación (LoginRequestDto, LoginResponseDto).
 - Se habilitó CORS para React y se activó en SecurityConfig.
+- **Corrección**: Actualizado `JwtAuthenticationFilter` para manejar correctamente el prefijo `ROLE_` en los roles del token, solucionando errores 403 (Forbidden).
 
 ## Modelo y persistencia
 - Entidades JPA: Usuario, Rol, UsuarioRol.
 - Entidades del Módulo de Catálogo Maestro: Categoria, Supermercado, Producto, ProductoTienda.
 - Entidades del Módulo de Precios: HistorialPrecio (Series de tiempo).
-- Entidades del Módulo de Listas de Compras: ListaCompra, ItemLista.
-- Repositorios JPA: UsuarioRepository, RolRepository, UsuarioRolRepository.
+- Entidades del Módulo de Listas de Compras: ListaCompra (actualizada con campo `favorita`), ItemLista.
+- Repositorios JPA: UsuarioRepository, RolRepository, UsuarioRolRepository, ListaCompraRepository.
 - Método existsByUsuarioAndRol en UsuarioRolRepository para evitar duplicados.
 
 ## Usuarios y roles
@@ -28,6 +29,14 @@
 - UsuarioService/Impl: registrar, listar, asignarRol, crearRol, listarRoles.
 - DTOs para usuarios: UsuarioCreateDto, UsuarioDto, AssignRoleDto, RolDto.
 - ApiResponse agregado para estandarizar respuestas con status numérico, message y data.
+- **Mejora**: `UsuarioDto` ahora incluye la lista de roles del usuario.
+
+## Mis Listas 
+- Creado `ListaCompraController` con CRUD completo para la gestión de listas personales.
+- Implementado `ListaCompraService` y `ListaCompraServiceImpl` con lógica de negocio y validación de propietario.
+- Añadidos DTOs: `ListaCompraDto` y `ListaCompraCreateDto`.
+- Endpoint `PATCH /api/v1/listas/{id}/favorita` para marcar listas destacadas.
+- Integración de `Principal` en el controlador para una identificación robusta del usuario autenticado.
 
 ## Estructura de Tiendas
 - Implementado Módulo de Estructura de Tiendas (Supermercados y ProductoTienda).
