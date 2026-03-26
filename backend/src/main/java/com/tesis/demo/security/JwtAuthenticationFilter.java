@@ -59,7 +59,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (claimsRoles instanceof List<?> raw) {
                     authorities = raw.stream()
                             .map(Object::toString)
-                            .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                            .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r)
+                            .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
                 }
                 UsernamePasswordAuthenticationToken authToken =

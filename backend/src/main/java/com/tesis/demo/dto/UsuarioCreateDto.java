@@ -17,6 +17,6 @@ public class UsuarioCreateDto {
     private String password;
     @NotBlank
     private String nombre;
-    @NotBlank
+    
     private String estado;
 }

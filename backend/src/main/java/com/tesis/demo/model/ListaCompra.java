@@ -25,4 +25,12 @@ public class ListaCompra {
 
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion;
+
+    @Column(name = "favorita", nullable = false)
+    private boolean favorita = false;
+
+    @PrePersist
+    protected void onCreate() {
+        fechaCreacion = LocalDateTime.now();
+    }
 }
