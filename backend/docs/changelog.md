@@ -46,6 +46,14 @@
 - Endpoints añadidos para gestión CRUD de supermercados y mapeo de productos para scraping.
 - Documentación de endpoints actualizada en `endpoints.md`.
 
+## Precios
+- Implementado `HistorialPrecioRepository` para persistir la serie temporal de capturas del scraper.
+- Añadidos DTOs: `HistorialPrecioCreateDto` y `HistorialPrecioDto`.
+- Implementados `HistorialPrecioService` y `HistorialPrecioServiceImpl`.
+- Creado `HistorialPrecioController` con endpoints para registrar capturas, consultar historial y obtener el último precio disponible.
+- El registro de precios utiliza `producto_tienda` como pivote entre el producto maestro y la tienda origen.
+- Documentación de endpoints actualizada para soportar el flujo futuro del scraper.
+
 ## Catálogo Maestro
 
 ## Configuración

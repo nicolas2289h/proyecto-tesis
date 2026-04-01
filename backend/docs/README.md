@@ -1,6 +1,6 @@
 # Proyecto Tesis - Backend (Spring Boot)
 
-Este backend implementa autenticación con JWT, gestión de usuarios y roles, y persistencia en PostgreSQL (local o Supabase).
+Este backend implementa autenticación con JWT, gestión de usuarios y roles, catálogo maestro, estructura de tiendas, listas personales y persistencia de precios en PostgreSQL (local o Supabase).
 
 ## Arquitectura
 - Framework: Spring Boot
@@ -20,6 +20,7 @@ Este backend implementa autenticación con JWT, gestión de usuarios y roles, y 
 - UsuarioRepository.java
 - RolRepository.java
 - UsuarioRolRepository.java
+- HistorialPrecioRepository.java
 
 ### Seguridad
 - SecurityConfig.java
@@ -37,6 +38,11 @@ Este backend implementa autenticación con JWT, gestión de usuarios y roles, y 
 - UsuarioService.java
 - UsuarioServiceImpl.java
 
+### Precios
+- HistorialPrecioController.java
+- HistorialPrecioService.java
+- HistorialPrecioServiceImpl.java
+
 ### DTOs
 - LoginRequestDto.java
 - LoginResponseDto.java
@@ -45,6 +51,8 @@ Este backend implementa autenticación con JWT, gestión de usuarios y roles, y 
 - RolDto.java
 - AssignRoleDto.java
 - ApiResponse.java
+- HistorialPrecioCreateDto.java
+- HistorialPrecioDto.java
 
 ## Dependencias relevantes (pom.xml)
 - spring-boot-starter-security

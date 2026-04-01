@@ -100,6 +100,34 @@
 - DELETE `/api/v1/productos-tienda/{id}`
   - Response: `ApiResponse<Void>`
 
+## Precios
+- POST `/api/v1/precios`
+  - Request: `HistorialPrecioCreateDto { productoTiendaId, precio, fechaRecoleccion }`
+  - Response: `ApiResponse<HistorialPrecioDto>`
+  - Controlador: `HistorialPrecioController`
+  - Seguridad: requiere JWT
+
+- GET `/api/v1/precios`
+  - Response: `ApiResponse<List<HistorialPrecioDto>>`
+  - Controlador: `HistorialPrecioController`
+  - Seguridad: requiere JWT
+
+- GET `/api/v1/precios/{id}`
+  - Response: `ApiResponse<HistorialPrecioDto>`
+  - Controlador: `HistorialPrecioController`
+  - Seguridad: requiere JWT
+
+- GET `/api/v1/precios/producto-tienda/{productoTiendaId}`
+  - Response: `ApiResponse<List<HistorialPrecioDto>>`
+  - Controlador: `HistorialPrecioController`
+  - Seguridad: requiere JWT
+
+- GET `/api/v1/precios/producto-tienda/{productoTiendaId}/ultimo`
+  - Response: `ApiResponse<HistorialPrecioDto>`
+  - Controlador: `HistorialPrecioController`
+  - Seguridad: requiere JWT
+  - Uso principal: obtener el último precio disponible para comparación y optimización
+
 ## Mis Listas
 - POST `/api/v1/listas`
   - Request: `ListaCompraCreateDto { nombreLista, favorita }`
