@@ -161,6 +161,34 @@
   - Controlador: `ListaCompraController`
   - Seguridad: requiere JWT (Principal)
 
+### Items de Lista
+- POST `/api/v1/listas/{listaId}/items`
+  - Request: `ItemListaCreateDto { productoId, cantidad }`
+  - Response: `ApiResponse<ItemListaDto>`
+  - Controlador: `ItemListaController`
+  - Seguridad: requiere JWT (Principal y propietario de la lista)
+
+- GET `/api/v1/listas/{listaId}/items`
+  - Response: `ApiResponse<List<ItemListaDto>>`
+  - Controlador: `ItemListaController`
+  - Seguridad: requiere JWT (Principal y propietario de la lista)
+
+- GET `/api/v1/listas/{listaId}/items/{itemId}`
+  - Response: `ApiResponse<ItemListaDto>`
+  - Controlador: `ItemListaController`
+  - Seguridad: requiere JWT (Principal y propietario de la lista)
+
+- PUT `/api/v1/listas/{listaId}/items/{itemId}`
+  - Request: `ItemListaCreateDto { productoId, cantidad }`
+  - Response: `ApiResponse<ItemListaDto>`
+  - Controlador: `ItemListaController`
+  - Seguridad: requiere JWT (Principal y propietario de la lista)
+
+- DELETE `/api/v1/listas/{listaId}/items/{itemId}`
+  - Response: `ApiResponse<Void>`
+  - Controlador: `ItemListaController`
+  - Seguridad: requiere JWT (Principal y propietario de la lista)
+
 ## Roles
 - Roles soportados: USUARIO, ADMINISTRADOR, COMERCIANTE, MODERADOR
 - Tabla: rol

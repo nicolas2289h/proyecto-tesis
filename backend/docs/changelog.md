@@ -54,6 +54,14 @@
 - El registro de precios utiliza `producto_tienda` como pivote entre el producto maestro y la tienda origen.
 - Documentación de endpoints actualizada para soportar el flujo futuro del scraper.
 
+## Items de Lista
+- Implementado `ItemListaRepository` para gestionar el detalle de productos dentro de cada lista.
+- Añadidos DTOs: `ItemListaCreateDto` y `ItemListaDto`.
+- Implementados `ItemListaService` y `ItemListaServiceImpl` con validación de propietario de la lista.
+- Creado `ItemListaController` con CRUD completo para los items de una lista.
+- Se evita duplicar el mismo producto maestro dentro de una misma lista.
+- La eliminación de listas ahora limpia previamente sus items para mantener integridad referencial.
+
 ## Catálogo Maestro
 
 ## Configuración

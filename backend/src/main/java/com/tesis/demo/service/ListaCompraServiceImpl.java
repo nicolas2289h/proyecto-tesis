@@ -4,6 +4,7 @@ import com.tesis.demo.dto.ListaCompraCreateDto;
 import com.tesis.demo.dto.ListaCompraDto;
 import com.tesis.demo.model.ListaCompra;
 import com.tesis.demo.model.Usuario;
+import com.tesis.demo.repository.ItemListaRepository;
 import com.tesis.demo.repository.ListaCompraRepository;
 import com.tesis.demo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class ListaCompraServiceImpl implements ListaCompraService {
 
     private final ListaCompraRepository listaCompraRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ItemListaRepository itemListaRepository;
 
     @Override
     @Transactional
@@ -61,6 +63,7 @@ public class ListaCompraServiceImpl implements ListaCompraService {
     @Transactional
     public void eliminarLista(Long id, String userEmail) {
         ListaCompra lista = getListaAndCheckOwner(id, userEmail);
+        itemListaRepository.deleteByListaCompraId(lista.getId());
         listaCompraRepository.delete(lista);
     }
 
