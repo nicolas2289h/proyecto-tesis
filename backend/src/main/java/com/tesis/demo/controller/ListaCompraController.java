@@ -2,6 +2,7 @@ package com.tesis.demo.controller;
 
 import com.tesis.demo.dto.ApiResponse;
 import com.tesis.demo.dto.ListaCompraCreateDto;
+import com.tesis.demo.dto.ListaCompraDetalleDto;
 import com.tesis.demo.dto.ListaCompraDto;
 import com.tesis.demo.service.ListaCompraService;
 import jakarta.validation.Valid;
@@ -30,16 +31,16 @@ public class ListaCompraController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ListaCompraDto>>> listar(Principal principal) {
+    public ResponseEntity<ApiResponse<List<ListaCompraDetalleDto>>> listar(Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), null, 
                 listaCompraService.listarMisListas(principal.getName())));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ListaCompraDto>> obtener(@PathVariable Long id, 
+    public ResponseEntity<ApiResponse<ListaCompraDetalleDto>> obtener(@PathVariable Long id, 
                                                               Principal principal) {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), null, 
-                listaCompraService.obtenerLista(id, principal.getName())));
+                listaCompraService.obtenerListaDetalle(id, principal.getName())));
     }
 
     @PutMapping("/{id}")

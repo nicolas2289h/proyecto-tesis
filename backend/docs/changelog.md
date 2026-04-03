@@ -37,6 +37,8 @@
 - Añadidos DTOs: `ListaCompraDto` y `ListaCompraCreateDto`.
 - Endpoint `PATCH /api/v1/listas/{id}/favorita` para marcar listas destacadas.
 - Integración de `Principal` en el controlador para una identificación robusta del usuario autenticado.
+- **Mejora**: Los endpoints `GET /api/v1/listas` y `GET /api/v1/listas/{id}` ahora devuelven `ListaCompraDetalleDto`, incluyendo los ítems de la lista con sus precios unitarios, totales y el supermercado del último precio conocido, así como el total estimado de la lista.
+- **Mejora**: `ListaCompraService` ahora utiliza `HistorialPrecioService` para obtener el último precio de cada producto maestro en la lista.
 
 ## Estructura de Tiendas
 - Implementado Módulo de Estructura de Tiendas (Supermercados y ProductoTienda).

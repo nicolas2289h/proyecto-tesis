@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,6 +67,22 @@ public class HistorialPrecioServiceImpl implements HistorialPrecioService {
         return historialPrecioRepository.findTopByProductoTiendaIdOrderByFechaRecoleccionDesc(productoTiendaId)
                 .map(this::mapToDto)
                 .orElseThrow(() -> new RuntimeException("No hay precios registrados para este producto_tienda"));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<HistorialPrecioDto> obtenerUltimoPorProductoMaestro(Long productoId) {
+        List<ProductoTienda> productosTienda = productoTiendaRepository.findByProductoId(productoId);
+        if (productosTienda.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return productosTienda.stream()
+                .map(pt -> historialPrecioRepository.findTopByProductoTiendaIdOrderByFechaRecoleccionDesc(pt.getId()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .max(Comparator.comparing(HistorialPrecio::getFechaRecoleccion))
+                .map(this::mapToDto);
     }
 
     private HistorialPrecioDto mapToDto(HistorialPrecio historialPrecio) {

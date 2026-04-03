@@ -136,12 +136,12 @@
   - Seguridad: requiere JWT (Principal)
 
 - GET `/api/v1/listas`
-  - Response: `ApiResponse<List<ListaCompraDto>>`
+  - Response: `ApiResponse<List<ListaCompraDetalleDto>>`
   - Controlador: `ListaCompraController`
   - Seguridad: requiere JWT (Principal)
 
 - GET `/api/v1/listas/{id}`
-  - Response: `ApiResponse<ListaCompraDto>`
+  - Response: `ApiResponse<ListaCompraDetalleDto>`
   - Controlador: `ListaCompraController`
   - Seguridad: requiere JWT (Principal)
 
