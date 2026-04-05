@@ -63,6 +63,9 @@ Este backend implementa autenticación con JWT, gestión de usuarios y roles, ca
 - ItemListaDto.java
 - ItemListaConPrecioDto.java
 - ListaCompraDetalleDto.java
+- ProductoOptimoDto.java
+- TiendaOptimaDto.java
+- OptimizacionCompraDto.java
 
 ## Dependencias relevantes (pom.xml)
 - spring-boot-starter-security

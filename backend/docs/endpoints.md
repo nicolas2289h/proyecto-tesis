@@ -233,7 +233,8 @@
   - Controlador: `ItemListaController`
   - Seguridad: requiere JWT (Principal y propietario de la lista)
 
-## Roles
-- Roles soportados: USUARIO, ADMINISTRADOR, COMERCIANTE, MODERADOR
-- Tabla: rol
-- Relación: N–N mediante tabla `usuario_rol`
+- GET `/api/v1/listas/{id}/circuito-optimo`
+  - Descripción: Genera un circuito de compra óptimo para una lista de compras, indicando qué productos comprar en cada supermercado para obtener el precio mínimo total y el ahorro total.
+  - Response: `ApiResponse<OptimizacionCompraDto>`
+  - Controlador: `OptimizacionController`
+  - Seguridad: requiere JWT (Principal y propietario de la lista)

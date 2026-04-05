@@ -64,7 +64,13 @@
 - Se evita duplicar el mismo producto maestro dentro de una misma lista.
 - La eliminación de listas ahora limpia previamente sus items para mantener integridad referencial.
 
-## Catálogo Maestro
+## Optimizador de Compras
+- Implementado `OptimizacionService` y `OptimizacionServiceImpl` con la lógica del algoritmo de circuito de compra óptimo.
+- Creados DTOs: `ProductoOptimoDto`, `TiendaOptimaDto`, `OptimizacionCompraDto`.
+- Creado `OptimizacionController` con el endpoint `GET /api/v1/listas/{id}/circuito-optimo`.
+- El algoritmo selecciona el supermercado con el precio más bajo para cada ítem, con una heurística para priorizar tiendas ya seleccionadas en caso de empate.
+- Calcula el ahorro total comparado con el escenario más caro.
+- Maneja productos sin precio disponible.
 
 ## Configuración
 - application.properties con datasource PostgreSQL y JPA.
