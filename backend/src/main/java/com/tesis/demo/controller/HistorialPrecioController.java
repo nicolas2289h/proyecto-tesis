@@ -44,4 +44,9 @@ public class HistorialPrecioController {
     public ResponseEntity<ApiResponse<HistorialPrecioDto>> obtenerUltimoPorProductoTienda(@PathVariable Long productoTiendaId) {
         return ResponseEntity.ok(ApiResponse.success(historialPrecioService.obtenerUltimoPorProductoTienda(productoTiendaId)));
     }
+
+    @GetMapping("/producto-maestro/{productoId}/historico")
+    public ResponseEntity<ApiResponse<List<HistorialPrecioDto>>> listarHistoricoPorProductoMaestro(@PathVariable Long productoId) {
+        return ResponseEntity.ok(ApiResponse.success(historialPrecioService.listarHistoricoPorProductoMaestro(productoId)));
+    }
 }

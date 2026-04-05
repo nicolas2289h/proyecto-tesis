@@ -85,6 +85,18 @@ public class HistorialPrecioServiceImpl implements HistorialPrecioService {
                 .map(this::mapToDto);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<HistorialPrecioDto> listarHistoricoPorProductoMaestro(Long productoId) {
+        List<ProductoTienda> productosTienda = productoTiendaRepository.findByProductoId(productoId);
+        
+        return productosTienda.stream()
+                .flatMap(pt -> historialPrecioRepository.findByProductoTiendaIdOrderByFechaRecoleccionDesc(pt.getId()).stream())
+                .map(this::mapToDto)
+                .sorted(Comparator.comparing(HistorialPrecioDto::getFechaRecoleccion).reversed())
+                .collect(Collectors.toList());
+    }
+
     private HistorialPrecioDto mapToDto(HistorialPrecio historialPrecio) {
         return new HistorialPrecioDto(
                 historialPrecio.getId(),

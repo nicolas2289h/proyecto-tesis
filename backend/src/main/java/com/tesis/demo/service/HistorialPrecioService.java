@@ -13,4 +13,5 @@ public interface HistorialPrecioService {
     List<HistorialPrecioDto> listarPorProductoTienda(Long productoTiendaId);
     HistorialPrecioDto obtenerUltimoPorProductoTienda(Long productoTiendaId);
     Optional<HistorialPrecioDto> obtenerUltimoPorProductoMaestro(Long productoId);
+    List<HistorialPrecioDto> listarHistoricoPorProductoMaestro(Long productoId);
 }
