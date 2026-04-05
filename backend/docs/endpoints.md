@@ -161,6 +161,13 @@
   - Seguridad: requiere JWT
   - Uso principal: obtener el último precio disponible para comparación y optimización
 
+- GET `/api/v1/precios/producto-maestro/{productoId}/historico`
+  - Descripción: Obtiene el historial consolidado de precios para un Producto Maestro en todos los supermercados vinculados.
+  - Response: `ApiResponse<List<HistorialPrecioDto>>`
+  - Controlador: `HistorialPrecioController`
+  - Seguridad: requiere JWT
+  - Uso principal: Dashboard de Tendencias y evolución de precios global por producto genérico.
+
 ## Mis Listas
 - POST `/api/v1/listas`
   - Descripción: Crea una nueva lista de compras para el usuario autenticado.

@@ -71,6 +71,13 @@
 - El algoritmo selecciona el supermercado con el precio más bajo para cada ítem, con una heurística para priorizar tiendas ya seleccionadas en caso de empate.
 - Calcula el ahorro total comparado con el escenario más caro.
 - Maneja productos sin precio disponible.
+- **Corrección**: Se resolvió un error de compilación en `OptimizacionServiceImpl.java` relacionado con el uso de variables no finales en expresiones lambda.
+
+## Dashboard de Tendencias
+- Implementado el seguimiento de historial de precios por Producto Maestro.
+- Nuevo método `listarHistoricoPorProductoMaestro` en `HistorialPrecioService` e `HistorialPrecioServiceImpl`.
+- El servicio consolida historiales de precios de todos los supermercados vinculados a un producto genérico y los ordena cronológicamente.
+- Nuevo endpoint `GET /api/v1/precios/producto-maestro/{productoId}/historico` en `HistorialPrecioController`.
 
 ## Configuración
 - application.properties con datasource PostgreSQL y JPA.
