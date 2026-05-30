@@ -74,8 +74,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public UsuarioDto asignarRol(Long usuarioId, AssignRoleDto dto) {
-        Usuario usuario = usuarioRepository.findById(usuarioId).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    public UsuarioDto asignarRol(AssignRoleDto dto) {
+        Usuario usuario = usuarioRepository.findById(dto.getUsuarioId()).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         Rol rol = rolRepository.findById(dto.getRolId()).orElseThrow(() -> new RuntimeException("Rol no encontrado"));
         if (!usuarioRolRepository.existsByUsuarioAndRol(usuario, rol)) {
             UsuarioRol usuarioRol = new UsuarioRol();

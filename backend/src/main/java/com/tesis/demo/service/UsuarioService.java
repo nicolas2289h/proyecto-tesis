@@ -11,7 +11,7 @@ import java.util.List;
 public interface UsuarioService {
     UsuarioDto registrar(UsuarioCreateDto dto);
     List<UsuarioDto> listar();
-    UsuarioDto asignarRol(Long usuarioId, AssignRoleDto dto);
+    UsuarioDto asignarRol(AssignRoleDto dto);
     Rol crearRol(RolDto rolDto);
     List<Rol> listarRoles();
 }

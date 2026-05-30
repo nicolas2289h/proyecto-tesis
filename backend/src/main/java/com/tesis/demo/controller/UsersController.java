@@ -30,9 +30,9 @@ public class UsersController {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), null, usuarioService.listar()));
     }
 
-    @PostMapping("/{id}/roles")
-    public ResponseEntity<ApiResponse<UsuarioDto>> asignarRol(@PathVariable Long id, @RequestBody AssignRoleDto dto) {
-        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Rol asignado", usuarioService.asignarRol(id, dto)));
+    @PostMapping("/asignar/roles")
+    public ResponseEntity<ApiResponse<UsuarioDto>> asignarRol(@RequestBody AssignRoleDto dto) {
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Rol asignado", usuarioService.asignarRol(dto)));
     }
 
     @PostMapping("/roles")

@@ -22,7 +22,7 @@
   - Controlador: UsersController
   - Seguridad: requiere JWT
 
-- POST /api/v1/usuarios/{id}/roles
+- POST /api/v1/usuarios/asignar/roles
   - Descripción: Asigna un rol específico a un usuario existente.
   - Request: AssignRoleDto { usuarioId, rolId }
   - Response: ApiResponse<UsuarioDto>
