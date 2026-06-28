@@ -25,9 +25,7 @@ public class ProductoServiceImpl implements ProductoService {
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
 
         Producto producto = new Producto();
-        producto.setNombreGenerico(dto.getNombreGenerico());
-        producto.setMarca(dto.getMarca());
-        producto.setCategoria(categoria);
+        mapDtoToEntity(dto, producto, categoria);
 
         return toDto(productoRepository.save(producto));
     }
@@ -56,9 +54,7 @@ public class ProductoServiceImpl implements ProductoService {
         Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
 
-        producto.setNombreGenerico(dto.getNombreGenerico());
-        producto.setMarca(dto.getMarca());
-        producto.setCategoria(categoria);
+        mapDtoToEntity(dto, producto, categoria);
 
         return toDto(productoRepository.save(producto));
     }
@@ -72,13 +68,27 @@ public class ProductoServiceImpl implements ProductoService {
         productoRepository.deleteById(id);
     }
 
-    private ProductoDto toDto(Producto p) {
+    // ─── Mappers ────────────────────────────────────────────────────────────────
+
+    public ProductoDto toDto(Producto p) {
         return new ProductoDto(
                 p.getId(),
                 p.getNombreGenerico(),
                 p.getMarca(),
+                p.getVarianteEspecifica(),
+                p.getPesoValor(),
+                p.getPesoUnidad(),
                 p.getCategoria().getId(),
                 p.getCategoria().getNombre()
         );
+    }
+
+    private void mapDtoToEntity(ProductoDto dto, Producto producto, Categoria categoria) {
+        producto.setNombreGenerico(dto.getNombreGenerico());
+        producto.setMarca(dto.getMarca());
+        producto.setVarianteEspecifica(dto.getVarianteEspecifica());
+        producto.setPesoValor(dto.getPesoValor());
+        producto.setPesoUnidad(dto.getPesoUnidad());
+        producto.setCategoria(categoria);
     }
 }
