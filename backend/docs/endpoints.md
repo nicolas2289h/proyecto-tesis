@@ -245,3 +245,54 @@
   - Response: `ApiResponse<OptimizacionCompraDto>`
   - Controlador: `OptimizacionController`
   - Seguridad: requiere JWT (Principal y propietario de la lista)
+
+## Criterios de Búsqueda (Configuración del Scraper)
+Permite al administrador configurar qué términos genéricos rastreará el scraper en los supermercados.
+
+- POST `/api/v1/criterios-busqueda`
+  - Descripción: Crea un nuevo criterio de búsqueda asociado a una categoría.
+  - Request: `CriterioBusquedaDto { terminoBusqueda, categoriaId }`
+  - Response: `ApiResponse<CriterioBusquedaDto>`
+  - Seguridad: requiere JWT
+
+- GET `/api/v1/criterios-busqueda`
+  - Descripción: Obtiene todos los criterios de búsqueda activos.
+  - Response: `ApiResponse<List<CriterioBusquedaDto>>`
+  - Seguridad: requiere JWT
+
+- GET `/api/v1/criterios-busqueda/{id}`
+  - Descripción: Obtiene un criterio por su ID.
+  - Response: `ApiResponse<CriterioBusquedaDto>`
+  - Seguridad: requiere JWT
+
+- GET `/api/v1/criterios-busqueda/por-categoria/{categoriaId}`
+  - Descripción: Lista los criterios filtrados por categoría.
+  - Response: `ApiResponse<List<CriterioBusquedaDto>>`
+  - Seguridad: requiere JWT
+
+- PUT `/api/v1/criterios-busqueda/{id}`
+  - Descripción: Actualiza un criterio existente.
+  - Request: `CriterioBusquedaDto { terminoBusqueda, categoriaId }`
+  - Response: `ApiResponse<CriterioBusquedaDto>`
+  - Seguridad: requiere JWT
+
+- DELETE `/api/v1/criterios-busqueda/{id}`
+  - Descripción: Elimina un criterio de búsqueda.
+  - Response: `ApiResponse<Void>`
+  - Seguridad: requiere JWT
+
+## Módulo Extractor (API para el Scraper Python)
+Endpoints exclusivos para el bot de scraping. Requieren `ROLE_ADMIN`.
+
+- GET `/api/v1/extractor/targets`
+  - Descripción: Retorna el producto cartesiano de supermercados × criterios_busqueda. El scraper itera sobre esta lista para saber qué buscar en cada tienda.
+  - Response: `ApiResponse<List<Map>>` donde cada elemento contiene: `{ supermercadoId, supermercadoNombre, urlBase, palabraClave, categoriaId, categoriaNombre }`
+  - Controlador: `ExtractorController`
+  - Seguridad: requiere JWT con `ROLE_ADMIN`
+
+- POST `/api/v1/extractor/ingesta-masiva`
+  - Descripción: Recibe la lista de productos descubiertos en la grilla de resultados del supermercado. Ejecuta el pipeline: normalización (Regex + Jaro-Winkler) → deduplicación → inserción en catálogo maestro → registro de precios.
+  - Request: `List<ItemIngestaDto>` donde cada ítem tiene: `{ textoCrudoTienda, urlEspecifica, precioActual, disponibilidad, supermercadoId, palabraClaveBuscada }`
+  - Response: `ApiResponse<IngestaResultadoDto>` con: `{ procesados, nuevosProductos, productosUnificados, preciosRegistrados, errores }`
+  - Controlador: `ExtractorController`
+  - Seguridad: requiere JWT con `ROLE_ADMIN`
