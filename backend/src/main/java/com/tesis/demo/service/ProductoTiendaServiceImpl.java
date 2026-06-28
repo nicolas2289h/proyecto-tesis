@@ -111,8 +111,10 @@ public class ProductoTiendaServiceImpl implements ProductoTiendaService {
                 pt.getId(),
                 pt.getProducto().getId(),
                 pt.getProducto().getNombreGenerico(),
+                pt.getProducto().getMarca(),
                 pt.getSupermercado().getId(),
                 pt.getSupermercado().getNombre(),
+                pt.getSupermercado().getUrlBase(),
                 pt.getUrlEspecifica(),
                 pt.getCodigoExterno()
         );

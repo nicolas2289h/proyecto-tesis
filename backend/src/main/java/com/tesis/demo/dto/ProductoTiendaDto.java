@@ -1,6 +1,5 @@
 package com.tesis.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,13 +15,14 @@ public class ProductoTiendaDto {
     private Long productoId;
     
     private String productoNombre;
+    private String productoMarca;
     
     @NotNull(message = "El supermercado es obligatorio")
     private Long supermercadoId;
     
     private String supermercadoNombre;
+    private String supermercadoUrlBase;
     
-    @NotBlank(message = "La URL específica es obligatoria")
     private String urlEspecifica;
     
     private String codigoExterno;
