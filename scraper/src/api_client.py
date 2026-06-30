@@ -217,3 +217,129 @@ class ApiClient:
             time.sleep(self.backoff_factor ** attempt)
             
         return False
+
+    def update_producto_tienda(self, target_id: int, payload: Dict[str, Any]) -> bool:
+        """
+        Actualiza el mapeo de producto-tienda en el backend.
+        Endpoint: PUT /api/v1/productos-tienda/{id}
+
+        Args:
+            target_id: ID del mapeo del producto-tienda.
+            payload: Payload JSON con los datos actualizados.
+
+        Returns:
+            bool: True si se actualizó con éxito, False en caso contrario.
+        """
+        logger.info(f"Actualizando ProductoTienda {target_id} en el backend con nueva URL...")
+        
+        for attempt in range(self.max_retries):
+            try:
+                response = self._request_with_token("PUT", f"/api/v1/productos-tienda/{target_id}", json_data=payload)
+                
+                if response.status_code in [200, 204]:
+                    logger.info(f"ProductoTienda {target_id} actualizado con éxito (HTTP {response.status_code}).")
+                    return True
+                else:
+                    logger.warning(f"Intento {attempt + 1} fallido al actualizar ProductoTienda (HTTP {response.status_code}): {response.text}")
+                    
+            except RequestException as e:
+                logger.warning(f"Error de red en intento {attempt + 1} al actualizar ProductoTienda: {e}")
+                if attempt == self.max_retries - 1:
+                    raise Exception(f"Error persistente al actualizar ProductoTienda {target_id}.")
+            
+            time.sleep(self.backoff_factor ** attempt)
+            
+        return False
+
+    def get_extraction_targets(self) -> List[Dict[str, Any]]:
+        """
+        Obtiene los objetivos de extracción del nuevo modo de descubrimiento automático.
+        El backend genera el producto cartesiano supermercados × criterios_busqueda.
+        Endpoint: GET /api/v1/extractor/targets
+
+        Returns:
+            List[Dict]: Lista de targets con claves:
+                - supermercadoId, supermercadoNombre, urlBase,
+                - palabraClave, categoriaId, categoriaNombre
+        """
+        logger.info("Obteniendo targets de extracción (modo descubrimiento) desde el Backend...")
+
+        for attempt in range(self.max_retries):
+            try:
+                response = self._request_with_token("GET", "/api/v1/extractor/targets")
+
+                if response.status_code == 200:
+                    response_json = response.json()
+                    targets = response_json.get("data", response_json) if isinstance(response_json, dict) else response_json
+                    if not isinstance(targets, list):
+                        raise ValueError(f"Formato inesperado: se esperaba lista. Recibido: {type(targets)}")
+                    logger.info(f"Se obtuvieron {len(targets)} targets de extracción.")
+                    return targets
+                else:
+                    logger.warning(f"Intento {attempt + 1} fallido al obtener targets (HTTP {response.status_code}): {response.text}")
+
+            except (RequestException, ValueError) as e:
+                logger.warning(f"Error en intento {attempt + 1} al obtener targets: {e}")
+                if attempt == self.max_retries - 1:
+                    raise Exception(f"No se pudieron obtener los targets tras {self.max_retries} intentos.")
+
+            time.sleep(self.backoff_factor ** attempt)
+
+        raise Exception("Fallo inesperado al obtener targets de extracción.")
+
+    def post_ingesta_masiva(self, items: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Envía la lista de productos descubiertos al endpoint de ingesta masiva del backend.
+        El backend normaliza, detecta duplicados y pobla el catálogo maestro automáticamente.
+        Endpoint: POST /api/v1/extractor/ingesta-masiva
+
+        Args:
+            items: Lista de dicts con claves:
+                - textoCrudoTienda (str)
+                - urlEspecifica (str)
+                - precioActual (float | None)
+                - disponibilidad (bool)
+                - supermercadoId (int)
+                - palabraClaveBuscada (str)
+
+        Returns:
+            Dict con el resumen de la operación:
+                { procesados, nuevosProductos, productosUnificados, preciosRegistrados, errores }
+
+        Raises:
+            Exception: Si la petición falla tras todos los reintentos.
+        """
+        logger.info(f"Enviando ingesta masiva al backend -> {len(items)} ítems.")
+
+        for attempt in range(self.max_retries):
+            try:
+                response = self._request_with_token(
+                    "POST", "/api/v1/extractor/ingesta-masiva", json_data=items
+                )
+
+                if response.status_code in [200, 201]:
+                    response_json = response.json()
+                    resultado = response_json.get("data", response_json) if isinstance(response_json, dict) else response_json
+                    logger.info(
+                        f"Ingesta masiva exitosa (HTTP {response.status_code}). "
+                        f"Procesados: {resultado.get('procesados', '?')}, "
+                        f"Nuevos: {resultado.get('nuevosProductos', '?')}, "
+                        f"Unificados: {resultado.get('productosUnificados', '?')}, "
+                        f"Precios: {resultado.get('preciosRegistrados', '?')}, "
+                        f"Errores: {resultado.get('errores', '?')}"
+                    )
+                    return resultado
+                elif response.status_code == 403:
+                    logger.error("Permisos insuficientes (403 Forbidden) para ingesta-masiva. ¿Usuario tiene ROLE_ADMIN?")
+                    return {}
+                else:
+                    logger.warning(f"Intento {attempt + 1} fallido en ingesta-masiva (HTTP {response.status_code}): {response.text}")
+
+            except RequestException as e:
+                logger.warning(f"Error de red en intento {attempt + 1} de ingesta-masiva: {e}")
+                if attempt == self.max_retries - 1:
+                    raise Exception(f"Error persistente al enviar ingesta masiva tras {self.max_retries} intentos.")
+
+            time.sleep(self.backoff_factor ** attempt)
+
+        return {}
