@@ -1,8 +1,71 @@
 import re
 import logging
-from typing import Optional
+from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Mapa de normalización de unidades de peso/volumen
+# ──────────────────────────────────────────────────────────────────────────────
+_UNIT_MAP: Dict[str, str] = {
+    "g": "g", "gr": "g", "grs": "g", "gramo": "g", "gramos": "g",
+    "kg": "kg", "kgs": "kg", "kilo": "kg", "kilos": "kg",
+    "kilogramo": "kg", "kilogramos": "kg",
+    "ml": "ml", "cc": "ml",
+    "l": "l", "lt": "l", "litro": "l", "litros": "l",
+}
+
+# Patrón para extraer cantidad + unidad de cualquier texto de producto
+# Soporta: "500g", "500 gr", "x 500 gramos", "1,5 kg", "750ml", "1 litro"
+_PESO_PATTERN = re.compile(
+    r"(?:x\s*)?(\d+(?:[.,]\d+)?)\s*"
+    r"(g|gr|grs|gramos?|kg|kgs?|kilos?|kilogramos?|ml|cc|l|lt|litros?)",
+    re.IGNORECASE
+)
+
+
+def parse_weight(text: str) -> Dict[str, Optional[object]]:
+    """
+    Extrae el peso/volumen de un texto crudo de producto de supermercado.
+
+    Pre-normaliza la cantidad y la unidad para que el backend reciba
+    campos atómicos limpios en el DTO de ingesta masiva.
+
+    Args:
+        text: Texto completo del producto (ej: "Fideos Spaghetti Lucchetti x 500 gramos").
+
+    Returns:
+        Dict con:
+            - ``peso_valor`` (float | None): Valor numérico del peso.
+            - ``peso_unidad`` (str | None): Unidad normalizada ("g", "kg", "ml", "l").
+
+    Examples:
+        >>> parse_weight("Arroz Cañuelas 1kg")
+        {'peso_valor': 1.0, 'peso_unidad': 'kg'}
+        >>> parse_weight("Fideos x 500 gramos")
+        {'peso_valor': 500.0, 'peso_unidad': 'g'}
+        >>> parse_weight("Aceite 1,5 l")
+        {'peso_valor': 1.5, 'peso_unidad': 'l'}
+    """
+    if not text:
+        return {"peso_valor": None, "peso_unidad": None}
+
+    match = _PESO_PATTERN.search(text)
+    if not match:
+        return {"peso_valor": None, "peso_unidad": None}
+
+    valor_str = match.group(1).replace(",", ".")
+    unidad_raw = match.group(2).lower().strip()
+
+    try:
+        peso_valor = float(valor_str)
+    except ValueError:
+        logger.warning(f"No se pudo convertir el valor de peso '{valor_str}' a float.")
+        return {"peso_valor": None, "peso_unidad": None}
+
+    peso_unidad = _UNIT_MAP.get(unidad_raw, unidad_raw)
+
+    return {"peso_valor": peso_valor, "peso_unidad": peso_unidad}
 
 def clean_price(price_str: Optional[str]) -> Optional[float]:
     """
@@ -22,8 +85,12 @@ def clean_price(price_str: Optional[str]) -> Optional[float]:
     if not price_str:
         return None
 
-    # Eliminar espacios en blanco alrededor
-    cleaned = price_str.strip()
+    # Tomar solo la primera línea: algunos supermercados devuelven precio actual + precio tachado
+    # juntos en el mismo bloque de texto (ej: "$ 973,59\n$ 1.216,99"). Solo nos interesa el primero.
+    cleaned = price_str.strip().splitlines()[0].strip()
+
+    # Normalizar espacios (incluyendo &nbsp; = \u00a0 que VTEX usa en sus precios)
+    cleaned = cleaned.replace('\u00a0', ' ')
 
     # Quitar símbolos monetarios comunes y terminaciones raras como ".-"
     cleaned = re.sub(r'[\$\s\-\.]*$', '', cleaned) # remueve fin de linea como ".-" o "."
