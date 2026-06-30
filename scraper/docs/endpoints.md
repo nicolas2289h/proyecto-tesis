@@ -9,8 +9,10 @@ Este documento detalla el contrato de integración de la API REST del Backend (S
 | Método | Endpoint | Seguridad | Propósito |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/api/v1/auth/login` | Público | Autenticación del Scraper y obtención del token JWT. |
-| **GET** | `/api/v1/productos-tienda` | Privado (`ROLE_ADMIN`) | Obtención de URLs de supermercados mapeados a raspar. |
-| **POST** | `/api/v1/precios` | Privado (`ROLE_ADMIN`) | Almacenamiento histórico de series de precios recolectados. |
+| **GET** | `/api/v1/productos-tienda` | Privado (`ROLE_ADMIN`) | [Legacy] Obtención de URLs de supermercados mapeados a raspar. |
+| **POST** | `/api/v1/precios` | Privado (`ROLE_ADMIN`) | [Legacy] Almacenamiento histórico de series de precios recolectados. |
+| **GET** | `/api/v1/extractor/targets` | Privado (`ROLE_ADMIN`) | [v2.0] Obtención de targets de descubrimiento (supermercado × keyword). |
+| **POST** | `/api/v1/extractor/ingesta-masiva` | Privado (`ROLE_ADMIN`) | [v2.0] Ingesta masiva de productos descubiertos en la grilla de búsqueda. |
 
 ---
 
@@ -149,3 +151,96 @@ Confirma la correcta persistencia del dato en la serie histórica.
 *   **HTTP 401 Unauthorized**: Token de acceso ausente, inválido o caducado.
 *   **HTTP 403 Forbidden**: Permisos de usuario insuficientes.
 *   **HTTP 409 Conflict / 422 Unprocessable Entity**: Violación de integridad (ej: el `productoTiendaId` referenciado no existe en la base de datos de mapeos).
+
+---
+
+## 4. [v2.0] Obtención de Targets de Descubrimiento
+
+Consulta la lista de combinaciones supermercado × keyword configuradas por el administrador.
+
+*   **Ruta**: `/api/v1/extractor/targets`
+*   **Método**: `GET`
+*   **Encabezados**:
+    *   `Authorization: Bearer <token_jwt_capturado>`
+    *   `Accept: application/json`
+
+### Respuesta Exitosa (HTTP 200 OK)
+```json
+{
+  "status": 200,
+  "message": "Targets de extracción generados: 6 combinaciones",
+  "data": [
+    {
+      "supermercadoId": 1,
+      "supermercadoNombre": "Comodin",
+      "urlBase": "https://www.comodinencasa.com.ar",
+      "palabraClave": "fideo",
+      "categoriaId": 2,
+      "categoriaNombre": "Almacén"
+    },
+    {
+      "supermercadoId": 1,
+      "supermercadoNombre": "Comodin",
+      "urlBase": "https://www.comodinencasa.com.ar",
+      "palabraClave": "arroz",
+      "categoriaId": 2,
+      "categoriaNombre": "Almacén"
+    }
+  ]
+}
+```
+
+---
+
+## 5. [v2.0] Ingesta Masiva de Productos Descubiertos
+
+Envía todos los productos extraídos de la grilla de resultados para que el backend los normalice, deduplique y persista.
+
+*   **Ruta**: `/api/v1/extractor/ingesta-masiva`
+*   **Método**: `POST`
+*   **Encabezados**:
+    *   `Authorization: Bearer <token_jwt_capturado>`
+    *   `Content-Type: application/json`
+
+### Cuerpo de la Petición (JSON Array)
+```json
+[
+  {
+    "textoCrudoTienda": "Fideos Spaghetti Lucchetti x 500 gramos",
+    "urlEspecifica": "https://www.comodinencasa.com.ar/fideos-lucchetti/p",
+    "precioActual": 1250.50,
+    "disponibilidad": true,
+    "supermercadoId": 1,
+    "palabraClaveBuscada": "fideo"
+  },
+  {
+    "textoCrudoTienda": "Fideo Spaghetti Luchetti 500g",
+    "urlEspecifica": "https://www.otrosupermercado.com.ar/fideo-luchetti/p",
+    "precioActual": 1189.00,
+    "disponibilidad": true,
+    "supermercadoId": 2,
+    "palabraClaveBuscada": "fideo"
+  }
+]
+```
+*(Nota: el backend detectará que ambos ítems corresponden al mismo producto maestro mediante Jaro-Winkler ≥ 0.92 y los unificará bajo el mismo `producto_id`.)*
+
+### Respuesta Exitosa (HTTP 200 OK)
+```json
+{
+  "status": 200,
+  "message": "Ingesta masiva procesada exitosamente.",
+  "data": {
+    "procesados": 2,
+    "nuevosProductos": 1,
+    "productosUnificados": 1,
+    "preciosRegistrados": 2,
+    "errores": 0
+  }
+}
+```
+
+### Respuestas de Error
+*   **HTTP 400 Bad Request**: Lista vacía o campos obligatorios faltantes.
+*   **HTTP 401 Unauthorized**: Token ausente o expirado.
+*   **HTTP 403 Forbidden**: El usuario no tiene `ROLE_ADMIN`.

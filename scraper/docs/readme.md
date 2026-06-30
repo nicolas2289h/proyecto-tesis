@@ -87,7 +87,7 @@ LOG_LEVEL=INFO
 *   `src/main.py`: Orquestador del ciclo de vida del raspado.
 *   `src/api_client.py`: Cliente de persistencia, renovación de JWT en memoria y comunicación API.
 *   `src/base_scraper.py`: Interfaz abstracta común y flujo de renderizado base.
-*   `src/scrapers/`: Contiene los scrapers específicos para **Jumbo** y **Líder**, organizados por clases hijas concretas.
+*   `src/scrapers/`: Contiene el scraper genérico y la fábrica de instanciación.
 *   `src/utils/normalizers.py`: Funciones puras de formateo matemático para parsear strings a tipos decimales y booleanos limpios.
 
 ---
