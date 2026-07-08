@@ -58,7 +58,7 @@ class BaseScraper(ABC):
             "Accept-Language": "es-ES,es;q=0.9,en;q=0.8"
         })
         
-        # Cargar la página esperando a que la red esté inactiva (ideal para JS dinámico)
+        # Cargar la página esperando a que el DOM esté disponible
         # Timeout por defecto de 30 segundos
         response = await page.goto(url, wait_until="domcontentloaded", timeout=30000)
         
@@ -278,8 +278,9 @@ class BaseScraper(ABC):
         })
 
         # Cargar la página de búsqueda
-        # Usamos 'networkidle' para garantizar que el JS de VTEX termine de cargar la grilla de productos
-        response = await page.goto(search_url, wait_until="networkidle", timeout=60000)
+        # Usamos 'domcontentloaded' para evitar esperas infinitas de trackers de terceros y analytics.
+        # Las vitrinas/grillas de VTEX e IO se renderizan dinámicamente y se gestionan con esperas fijas y scrolls.
+        response = await page.goto(search_url, wait_until="domcontentloaded", timeout=30000)
         if not response or response.status != 200:
             status_code = response.status if response else "Desconocido"
             logger.warning(f"[{store}] Advertencia al cargar búsqueda '{keyword}'. HTTP: {status_code}")
@@ -401,14 +402,67 @@ class BaseScraper(ABC):
 
                     // Estrategia 3 (fallback genérico): cualquier elemento con clase de precio
                     if (!precio_texto) {
-                        const priceEls = card.querySelectorAll(
+                        const priceEls = Array.from(card.querySelectorAll(
                             "[class*='price'], [class*='Price'], [class*='valor'], [class*='amount'], strong"
-                        );
+                        ));
+                        
+                        // 3.1. Intentar encontrar específicamente el sellingPrice / precio de venta (descartando listPrice)
+                        let sellingPriceEl = null;
                         for (let el of priceEls) {
-                            // Excluir .regular-price si ya estamos en fallback (es el tachado)
-                            if (el.classList.contains('regular-price')) continue;
-                            const firstLine = (el.innerText || '').trim().split('\\n')[0].trim();
-                            if (firstLine.includes('$')) { precio_texto = firstLine; break; }
+                            const className = el.className || "";
+                            const classStr = typeof className === 'string' ? className : "";
+                            
+                            // Excluir precios tachados o de lista o de ahorro
+                            if (classStr.includes('listPrice') || 
+                                classStr.includes('list-price') || 
+                                classStr.includes('strike') || 
+                                classStr.includes('savings') ||
+                                classStr.includes('regular-price') ||
+                                classStr.includes('regularPrice') ||
+                                el.querySelector('.strike') ||
+                                el.classList.contains('strike')) {
+                                continue;
+                            }
+                            
+                            // Si contiene sellingPrice o bestPrice, tiene prioridad alta
+                            if (classStr.includes('sellingPrice') || 
+                                classStr.includes('selling-price') || 
+                                classStr.includes('bestPrice') || 
+                                classStr.includes('best-price')) {
+                                sellingPriceEl = el;
+                                break;
+                            }
+                        }
+                        
+                        // 3.2. Si encontramos un sellingPrice explícito, usarlo
+                        if (sellingPriceEl) {
+                            const firstLine = (sellingPriceEl.innerText || '').trim().split('\\n')[0].trim();
+                            if (firstLine.includes('$')) {
+                                precio_texto = firstLine;
+                            }
+                        }
+                        
+                        // 3.3. Si no hay sellingPrice explícito, tomar el primer elemento con $ que no sea tachado
+                        if (!precio_texto) {
+                            for (let el of priceEls) {
+                                const className = el.className || "";
+                                const classStr = typeof className === 'string' ? className : "";
+                                
+                                if (classStr.includes('listPrice') || 
+                                    classStr.includes('list-price') || 
+                                    classStr.includes('strike') || 
+                                    classStr.includes('savings') ||
+                                    classStr.includes('regular-price') ||
+                                    classStr.includes('regularPrice') ||
+                                    el.classList.contains('strike')) {
+                                    continue;
+                                }
+                                const firstLine = (el.innerText || '').trim().split('\\n')[0].trim();
+                                if (firstLine.includes('$')) { 
+                                    precio_texto = firstLine; 
+                                    break; 
+                                }
+                            }
                         }
                     }
 
