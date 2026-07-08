@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 from urllib.parse import urlparse
 from .generic_jsonld_scraper import GenericJsonLdScraper
+from .dia_scraper import DiaScraper
 from ..base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class ScraperFactory:
             url: URL completa del producto o URL base de la tienda.
 
         Returns:
-            Optional[BaseScraper]: Instancia de GenericJsonLdScraper.
+            Optional[BaseScraper]: Instancia del scraper correspondiente.
         """
         if not url:
             logger.warning("Fábrica de scrapers recibió una URL vacía.")
@@ -34,6 +35,11 @@ class ScraperFactory:
                 store_name = "Tienda Genérica"
             else:
                 store_name = domain.replace("www.", "").split(".")[0].capitalize()
+                
+            if "supermercadosdia.com.ar" in domain:
+                logger.info("Fábrica instanciando DiaScraper específico para la tienda: 'Diaonline'.")
+                return DiaScraper()
+                
         except Exception:
             store_name = "Tienda Genérica"
             
