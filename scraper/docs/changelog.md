@@ -4,6 +4,64 @@ Historial de control de cambios del desarrollo del scraper. Organizado de forma 
 
 ---
 
+## [2.0.3] - 2026-07-07
+### Corregido: Bloqueo anti-bot `ERR_NETWORK_ACCESS_DENIED` en Comodín (y tiendas con detección de headless)
+
+**Problema:** Al ejecutar el Modo Descubrimiento con un contexto Playwright limpio, el sitio `comodinencasa.com.ar` rechazaba la conexión con `net::ERR_NETWORK_ACCESS_DENIED`. El sitio detectaba el navegador Chromium como automatizado (bot) y denegaba el acceso antes de entregar el HTML. El run anterior (misma ejecución con chocolatada) había funcionado, pero con contexto residual; un contexto totalmente limpio era bloqueado de forma sistemática.
+
+**Causa raíz:** Playwright, en modo headless, expone por defecto la propiedad `navigator.webdriver = true` y omite cabeceras HTTP que un navegador real siempre envía (`Sec-Ch-Ua`, `Accept` completo, etc.). Muchos e-commerces utilizan estas señales como huella digital para detectar bots y bloquearlos antes de entregar contenido.
+
+**Solución aplicada en `main.py`:**
+
+*   **Flag de Chromium `--disable-blink-features=AutomationControlled`**: elimina la marca principal que identifica a Chromium como automatizado a nivel de motor de renderizado.
+*   **`add_init_script` de evasión (inyectado en cada nueva página)**:
+    ```javascript
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+    Object.defineProperty(navigator, 'languages', { get: () => ['es-AR', 'es', 'en'] });
+    window.chrome = { runtime: {} };
+    ```
+    Oculta `navigator.webdriver` (la señal más usada por los sistemas anti-bot), simula la presencia de plugins de navegador real y define `window.chrome` (ausente en headless puro).
+*   **Contexto de navegador más realista**:
+    *   User-Agent actualizado a Chrome 124 (reemplaza Chrome 120, más desactualizado).
+    *   `locale="es-AR"` y `timezone_id="America/Argentina/Buenos_Aires"` para coherencia regional.
+    *   Headers HTTP completos: `Accept`, `Accept-Language`, `Sec-Ch-Ua`, `Sec-Ch-Ua-Mobile`, `Sec-Ch-Ua-Platform`.
+*   **Flags adicionales de Chromium**: `--disable-infobars`, `--disable-dev-shm-usage`, `--no-first-run`, `--lang=es-AR,es` para reducir la superficie de detección.
+*   **Retry con backoff exponencial (3 intentos, 10 / 20 / 30 s)** en `discovery_mode_run` para recuperarse de bloqueos transitorios de red sin abortar el proceso completo. El código diferencia errores de red (`net::ERR_*`) de errores de parseo, y solo aplica el retry en los primeros.
+
+**Resultado post-fix (run verificado 2026-07-07 21:00):**
+```
+[Comodinencasa] Se encontraron 3 tarjetas con selector 'div.product'. Extrayendo datos...
+[Comodinencasa] Extracción completada para 'picadillo': 3 productos.
+Ingesta masiva exitosa (HTTP 200). Procesados: 3, Nuevos: 3, Errores: 0
+```
+
+---
+
+## [2.0.2] - 2026-07-03
+
+### Corregido: Extracción de precio tachado y timeout en grilla de búsqueda de Supermercados Día
+*   **`DiaScraper` (`src/scrapers/dia_scraper.py`)**:
+    *   Sobrescribió el método `parse` para extraer mediante selectores CSS específicos el precio de venta final con descuento de Dia/VTEX IO (ej. `.diaio-store-5-x-sellingPriceValue`), previniendo la captura del precio original de lista tachado.
+    *   Añadido fallback automático al parser universal JSON-LD de la clase padre si fallan los selectores CSS específicos.
+*   **`BaseScraper` (`src/base_scraper.py`)**:
+    *   Mejorado el script JavaScript de extracción de grilla (`extract_all_products_from_search`) para ignorar elementos con clases de precio tachado, de lista o de ahorro (`listPrice`, `strike`, `savings`, `regular-price`, `regularPrice`), priorizando clases de precio de venta (`sellingPrice`, `bestPrice`).
+    *   Cambiado `wait_until="networkidle"` a `wait_until="domcontentloaded"` en la carga de la grilla de búsqueda, eliminando los errores de timeout de 60s causados por scripts de terceros (analytics, publicidad) que nunca finalizan. La grilla se renderiza igualmente con las esperas de scroll iterativo existentes.
+    *   Mantenido `wait_until="domcontentloaded"` también en `fetch_html` para páginas de detalle de producto.
+### Investigado: URLs de Cindor con `?` en el slug de Dia
+*   Las URLs de algunos productos de Cindor en Dia (ej: `.../leche-chocolatada-?cindor-1-lt.../p`) contienen un signo `?` en la ruta como bug del catálogo de Dia Online. Estas URLs generan 404 tanto con el `?` literal como codificado como `%3F`.
+*   **Acción requerida:** actualizar manualmente las URLs de estos `ProductoTienda` en el backend con las URLs correctas una vez que Dia las corrija en su plataforma, o eliminar esos registros del catálogo.
+
+## [2.0.1] - 2026-06-29
+### Añadido: Soporte específico para Supermercados Día
+*   **`DiaScraper` (`src/scrapers/dia_scraper.py`)**:
+    *   Implementado nuevo scraper específico para Día que hereda de `GenericJsonLdScraper`.
+    *   Sobreescribe `get_search_url` para generar el formato de búsqueda especial requerido por Día (`/{query}?_q={query}&map=ft`) solucionando los errores de timeout al buscar productos en este supermercado.
+*   **`ScraperFactory` (`src/scrapers/scraper_factory.py`)**:
+    *   Actualizada la fábrica para instanciar `DiaScraper` cuando detecta el dominio `supermercadosdia.com.ar`.
+
+---
+
 ## [2.0.0] - 2026-06-23
 ### Añadido: Modo de Descubrimiento Automático de Catálogo
 *   **`extract_all_products_from_search` (`base_scraper.py`)**:
