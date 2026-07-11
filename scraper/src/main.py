@@ -384,6 +384,7 @@ async def discovery_mode_run(api_client: ApiClient, page) -> None:
         for prod in productos_raw:
             titulo = prod.get("titulo") or ""
             url_producto = prod.get("url") or ""
+            url_imagen = prod.get("url_imagen") or ""
             precio_texto = prod.get("precio_texto")
 
             if not titulo or not url_producto:
@@ -402,6 +403,7 @@ async def discovery_mode_run(api_client: ApiClient, page) -> None:
                 "disponibilidad":     True,
                 "supermercadoId":     supermercado_id,
                 "palabraClaveBuscada": palabra_clave,
+                "urlImagen":          url_imagen
             })
 
         stats_discovery["procesados"] += 1

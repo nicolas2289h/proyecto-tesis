@@ -260,6 +260,7 @@ class BaseScraper(ABC):
         - ``url``: URL absoluta de la página del producto.
         - ``precio_texto``: Precio crudo renderizado (string), para que el backend
           aplique su normalización inteligente. Puede ser None si la tarjeta no lo muestra.
+        - ``url_imagen``: URL de la imagen del producto.
 
         Args:
             page:       Objeto Page activo de Playwright.
@@ -267,7 +268,7 @@ class BaseScraper(ABC):
             keyword:    Término de búsqueda original (para logging y contexto).
 
         Returns:
-            List[Dict]: Lista de diccionarios con claves ``titulo``, ``url``, ``precio_texto``.
+            List[Dict]: Lista de diccionarios con claves ``titulo``, ``url``, ``precio_texto``, ``url_imagen``.
                         Lista vacía si no se encontraron productos.
         """
         store = self.get_store_name()
@@ -373,6 +374,18 @@ class BaseScraper(ABC):
                         if (a) url = a.href;
                     }
 
+                    // Extraer URL de Imagen: primera <img> con src o data-src
+                    let url_imagen = "";
+                    const imgEl = card.querySelector('img');
+                    if (imgEl) {
+                        // Primero revisamos data-src (común en lazy load)
+                        url_imagen = imgEl.dataset.src || imgEl.dataset.srcset || imgEl.src;
+                        // Si es srcset, tomamos la primera URL
+                        if (url_imagen && url_imagen.includes(' ')) {
+                            url_imagen = url_imagen.split(' ')[0];
+                        }
+                    }
+
                     // Extraer Precio: el precio REAL es el texto directo de .offer-price
                     // (excluyendo el span.regular-price hijo que es el precio TACHADO/original)
                     // HTML real de Comodín: <div class="offer-price">$659,19 <span class="regular-price">$823,99</span></div>
@@ -466,7 +479,7 @@ class BaseScraper(ABC):
                         }
                     }
 
-                    return { titulo, url, precio_texto };
+                    return { titulo, url, precio_texto, url_imagen };
                 });
             }
             """
@@ -485,7 +498,8 @@ class BaseScraper(ABC):
                 productos_encontrados.append({
                     "titulo": item["titulo"],
                     "url": url_producto,
-                    "precio_texto": item["precio_texto"]
+                    "precio_texto": item["precio_texto"],
+                    "url_imagen": item["url_imagen"]
                 })
 
             # Si ya encontramos productos con este selector, no seguimos iterando

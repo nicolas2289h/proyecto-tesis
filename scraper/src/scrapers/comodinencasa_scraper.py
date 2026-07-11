@@ -8,13 +8,13 @@ from ..utils.normalizers import clean_price
 
 logger = logging.getLogger(__name__)
 
-class DiaScraper(BaseScraper):
+class ComodinEncasaScraper(BaseScraper):
     """
-    Scraper específico para Día Online (VTEX).
+    Scraper específico para Comodín en Casa (VTEX).
     """
 
     def get_store_name(self) -> str:
-        return "Día Online"
+        return "Comodín en Casa"
 
     def parse(self, html: str, product_url: str = None) -> Dict[str, Any]:
         soup = BeautifulSoup(html, "html.parser")
@@ -27,6 +27,7 @@ class DiaScraper(BaseScraper):
         logger.info(f"[{self.get_store_name()}] Parseando página: {product_url}")
         
         try:
+            # Estrategia 1: JSON-LD (más fiable)
             json_ld_tags = soup.find_all("script", type="application/ld+json")
             
             for tag in json_ld_tags:
@@ -41,6 +42,7 @@ class DiaScraper(BaseScraper):
                     for item in data_list:
                         if isinstance(item, dict) and item.get("@type") == "Product":
                             nombre = item.get("name")
+                            # Obtener URL de la imagen
                             if item.get("image"):
                                 url_imagen = item["image"][0] if isinstance(item["image"], list) else item["image"]
                             offers = item.get("offers", {})
@@ -52,6 +54,7 @@ class DiaScraper(BaseScraper):
                             else:
                                 offer = {}
                                 
+                            # Intentar obtener el precio de oferta primero (lowPrice)
                             raw_price = offer.get("lowPrice") or offer.get("price")
                             if raw_price is not None:
                                 try:
@@ -65,7 +68,8 @@ class DiaScraper(BaseScraper):
                                     disponible = "InStock" in availability or "OutOfStock" not in availability
                                 else:
                                     disponible = True
-                            if precio:
+                            
+                            if precio is not None:
                                 logger.info(f"[{self.get_store_name()}] JSON-LD OK: {nombre} - ${precio}")
                                 return {
                                     "precio": precio,
@@ -82,6 +86,7 @@ class DiaScraper(BaseScraper):
         # Estrategia 2: Selectores CSS (fallback)
         logger.info(f"[{self.get_store_name()}] Usando selectores CSS de respaldo")
         
+        # Nombre: buscar primero en h2
         for selector in [
             "h2[class*='product']", "h1[class*='product']", 
             "[class*='product-name']", "[class*='productName']"
@@ -91,6 +96,7 @@ class DiaScraper(BaseScraper):
                 nombre = el.text.strip()
                 break
                 
+        # Precio: buscar precio de venta (no tachado)
         for selector in [
             ".sellingPrice .value", ".bestPrice .value", ".offer-price", 
             "[class*='selling-price']", "[class*='best-price']"
@@ -100,7 +106,8 @@ class DiaScraper(BaseScraper):
                 precio = clean_price(el.text.strip())
                 if precio:
                     break
-        
+                    
+        # Imagen: buscar la principal
         for selector in [
             "img[class*='product']", "#product-image", "[class*='product-image'] img"
         ]:

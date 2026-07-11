@@ -1,48 +1,51 @@
 import logging
 from typing import Optional
 from urllib.parse import urlparse
-from .generic_jsonld_scraper import GenericJsonLdScraper
+
+from .comodinencasa_scraper import ComodinEncasaScraper
 from .dia_scraper import DiaScraper
+from .vea_scraper import VeaScraper
+from .generic_jsonld_scraper import GenericJsonLdScraper
 from ..base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
 
 class ScraperFactory:
     """
-    Fábrica estática para el diseño e instanciación de scrapers concretos.
-    Aplica el principio de inversión de dependencias y encapsula la creación de objetos.
+    Factoría para obtener el scraper específico según la URL base del supermercado.
     """
 
     @staticmethod
     def get_scraper(url: str) -> Optional[BaseScraper]:
         """
-        Determina e instancia el scraper correspondiente analizando la URL provista.
-        Retorna un scraper genérico basado en JSON-LD (Schema.org) adaptado para la tienda.
+        Analiza la URL y retorna la instancia del scraper apropiado.
 
         Args:
-            url: URL completa del producto o URL base de la tienda.
+            url: URL del supermercado o del producto.
 
         Returns:
-            Optional[BaseScraper]: Instancia del scraper correspondiente.
+            Instancia de BaseScraper o None si no se encuentra un scraper específico.
         """
-        if not url:
-            logger.warning("Fábrica de scrapers recibió una URL vacía.")
-            return None
-
         try:
-            domain = urlparse(url).netloc
-            if not domain and "/" in url:
-                store_name = "Tienda Genérica"
-            else:
-                store_name = domain.replace("www.", "").split(".")[0].capitalize()
-                
-            if "supermercadosdia.com.ar" in domain:
-                logger.info("Fábrica instanciando DiaScraper específico para la tienda: 'Diaonline'.")
-                return DiaScraper()
-                
-        except Exception:
-            store_name = "Tienda Genérica"
-            
-        logger.info(f"Fábrica instanciando GenericJsonLdScraper para la tienda: '{store_name}'.")
-        return GenericJsonLdScraper(store_name)
+            parsed_url = urlparse(url)
+            domain = parsed_url.netloc.lower()
+        except Exception as e:
+            logger.error(f"Error parseando la URL '{url}': {e}")
+            return GenericJsonLdScraper()
 
+        # Mapeo de dominios a scrapers específicos
+        scraper_map = {
+            "comodinencasa.com.ar": ComodinEncasaScraper,
+            "vea.com.ar": VeaScraper,
+            "diaonline.supermercadosdia.com.ar": DiaScraper
+        }
+
+        # Buscar el dominio exacto o parcial en el mapa
+        for target_domain, scraper_class in scraper_map.items():
+            if target_domain in domain:
+                logger.info(f"Scraper específico detectado para {target_domain}")
+                return scraper_class()
+
+        # Si no se encontró ningún scraper específico, usar el genérico
+        logger.info(f"No hay scraper específico para {domain}. Usando scraper genérico JSON-LD.")
+        return GenericJsonLdScraper()

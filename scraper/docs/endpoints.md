@@ -208,6 +208,7 @@ Envía todos los productos extraídos de la grilla de resultados para que el bac
   {
     "textoCrudoTienda": "Fideos Spaghetti Lucchetti x 500 gramos",
     "urlEspecifica": "https://www.comodinencasa.com.ar/fideos-lucchetti/p",
+    "urlImagen": "https://www.comodinencasa.com.ar/images/products/fideos-lucchetti.jpg",
     "precioActual": 1250.50,
     "disponibilidad": true,
     "supermercadoId": 1,
@@ -216,6 +217,7 @@ Envía todos los productos extraídos de la grilla de resultados para que el bac
   {
     "textoCrudoTienda": "Fideo Spaghetti Luchetti 500g",
     "urlEspecifica": "https://www.otrosupermercado.com.ar/fideo-luchetti/p",
+    "urlImagen": "https://www.otrosupermercado.com.ar/images/fideo-luchetti.jpg",
     "precioActual": 1189.00,
     "disponibilidad": true,
     "supermercadoId": 2,
@@ -223,7 +225,7 @@ Envía todos los productos extraídos de la grilla de resultados para que el bac
   }
 ]
 ```
-*(Nota: el backend detectará que ambos ítems corresponden al mismo producto maestro mediante Jaro-Winkler ≥ 0.92 y los unificará bajo el mismo `producto_id`.)*
+*(Nota: el backend detectará que ambos ítems corresponden al mismo producto maestro mediante Jaro-Winkler ≥ 0.92 y los unificará bajo el mismo `producto_id`. El campo `urlImagen` es opcional y se asocia a cada mapeo ProductoTienda.)*
 
 ### Respuesta Exitosa (HTTP 200 OK)
 ```json

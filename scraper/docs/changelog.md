@@ -4,6 +4,28 @@ Historial de control de cambios del desarrollo del scraper. Organizado de forma 
 
 ---
 
+## [2.1.0] - 2026-07-09
+
+### Añadido: Soporte para Imágenes de Productos
+*   **`BaseScraper.extract_all_products_from_search` (`src/base_scraper.py`)**: Añadida extracción de URLs de imágenes de productos desde las tarjetas de la grilla de búsqueda.
+    *   Soporte para lazy loading (prioriza `data-src` y `data-srcset` antes de `src`).
+    *   Manejo automático de srcsets para extraer solo la primera URL en caso de múltiples resoluciones múltiples.
+*   **`discovery_mode_run` (`src/main.py`): Incluye el campo `urlImagen` en el payload de `ItemIngestaDto` para enviar las URLs de imágenes al backend.
+*   **`api_client.post_ingesta_masiva` (`src/api_client.py`): Actualizada la documentación para reflejar que el payload acepta el campo `urlImagen`.
+
+### Mejorado: Extracción Robusta de Precios
+*   **`BaseScraper.extract_all_products_from_search`**: Implementada estrategias de extracción de precio de múltiples fallbacks para manejar diferentes layouts de precios:
+    *   Estrategia 1: Precio de oferta en `.offer-price` extrae solo el texto directo del nodo TEXT_NODE para evitar capturar precios tachados de hijos.
+    *   Estrategia 2: Precio regular en `.regular-price` como fallback si no hay precio de oferta.
+    *   Estrategia 3: Búsqueda genérica de elementos de precio que excluye explícitamente precios tachados (`listPrice`, `strike`, `savings`, etc.) y prioriza `sellingPrice` / `bestPrice`.
+*   Documentación detallada del HTML de ejemplo de la estructura de precios de Comodín en Casa para referencia.
+
+### Actualizado: Contracto de Datos
+*   `ItemIngestaDto` ahora opcionalmente acepta `urlImagen` para asociar una imagen a cada producto-tienda.
+*   Documentación actualizada en `endpoints.md del scraper.
+
+---
+
 ## [2.0.3] - 2026-07-07
 ### Corregido: Bloqueo anti-bot `ERR_NETWORK_ACCESS_DENIED` en Comodín (y tiendas con detección de headless)
 

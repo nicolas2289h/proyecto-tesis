@@ -8,13 +8,13 @@ from ..utils.normalizers import clean_price
 
 logger = logging.getLogger(__name__)
 
-class DiaScraper(BaseScraper):
+class VeaScraper(BaseScraper):
     """
-    Scraper específico para Día Online (VTEX).
+    Scraper específico para Vea (VTEX).
     """
 
     def get_store_name(self) -> str:
-        return "Día Online"
+        return "Vea"
 
     def parse(self, html: str, product_url: str = None) -> Dict[str, Any]:
         soup = BeautifulSoup(html, "html.parser")
