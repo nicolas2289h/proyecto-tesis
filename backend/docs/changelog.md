@@ -1,5 +1,11 @@
 # Historial de tareas ejecutadas
 
+## [v2.2] - Persistencia de Imágenes de Productos
+- Añadido el campo `urlImagen` al modelo `ProductoTienda` (columna `url_imagen` tipo `TEXT`) para persistir la URL de la imagen del producto obtenida directamente del supermercado.
+- Actualizado `ItemIngestaDto` para recibir `urlImagen` en el payload de ingesta masiva desde el scraper.
+- Modificado `IngestaServiceImpl` para guardar la URL de la imagen al crear nuevos mapeos o actualizarla si difiere de la existente.
+- Actualizado `ProductoTiendaDto` y el mapeo en `ProductoTiendaServiceImpl` para devolver `urlImagen` en las respuestas de la API.
+
 ## [v2.1] - Validación Semántica y Filtro Léxico en Ingesta Masiva
 - Agregado el método `esItemCompatible` en `NormalizacionService` e implementado en `NormalizacionServiceImpl` para validar que el texto crudo del producto corresponda a la palabra clave buscada.
   - **Filtro Positivo:** Requiere que el título contenga la palabra clave o su singular (ej: "sardina" o "sardinas"). Flexibilidad añadida para que "chocolatada" acepte "chocolate" + "leche"/"bebida".

@@ -106,7 +106,7 @@
 ### Mapeo de Productos (ProductoTienda)
 - POST `/api/v1/productos-tienda`
   - Descripción: Crea un nuevo mapeo entre un producto maestro y un supermercado, incluyendo la URL específica para scraping.
-  - Request: `ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno }`
+  - Request: `ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno, urlImagen }`
   - Response: `ApiResponse<ProductoTiendaDto>`
 - GET `/api/v1/productos-tienda`
   - Descripción: Obtiene una lista de todos los mapeos de productos a tiendas.
@@ -122,7 +122,7 @@
   - Response: `ApiResponse<List<ProductoTiendaDto>>`
 - PUT `/api/v1/productos-tienda/{id}`
   - Descripción: Actualiza un mapeo existente por su ID.
-  - Request: `ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno }`
+  - Request: `ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno, urlImagen }`
   - Response: `ApiResponse<ProductoTiendaDto>`
 - DELETE `/api/v1/productos-tienda/{id}`
   - Descripción: Elimina un mapeo por su ID.
@@ -292,7 +292,7 @@ Endpoints exclusivos para el bot de scraping. Requieren `ROLE_ADMIN`.
 
 - POST `/api/v1/extractor/ingesta-masiva`
   - Descripción: Recibe la lista de productos descubiertos en la grilla de resultados del supermercado. Ejecuta el pipeline: normalización (Regex + Jaro-Winkler) → deduplicación → inserción en catálogo maestro → registro de precios.
-  - Request: `List<ItemIngestaDto>` donde cada ítem tiene: `{ textoCrudoTienda, urlEspecifica, precioActual, disponibilidad, supermercadoId, palabraClaveBuscada }`
+  - Request: `List<ItemIngestaDto>` donde cada ítem tiene: `{ textoCrudoTienda, urlEspecifica, precioActual, disponibilidad, supermercadoId, palabraClaveBuscada, urlImagen }`
   - Response: `ApiResponse<IngestaResultadoDto>` con: `{ procesados, nuevosProductos, productosUnificados, preciosRegistrados, errores }`
   - Controlador: `ExtractorController`
   - Seguridad: requiere JWT con `ROLE_ADMIN`
