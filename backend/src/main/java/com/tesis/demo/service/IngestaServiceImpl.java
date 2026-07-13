@@ -153,14 +153,24 @@ public class IngestaServiceImpl implements IngestaService {
             productoTienda.setProducto(producto);
             productoTienda.setSupermercado(supermercado);
             productoTienda.setUrlEspecifica(item.getUrlEspecifica());
+            productoTienda.setUrlImagen(item.getUrlImagen());
             productoTienda = productoTiendaRepository.save(productoTienda);
             log.debug("[IngestaService] Nuevo ProductoTienda creado: ID={}", productoTienda.getId());
         } else {
             productoTienda = productoTiendaOpt.get();
             // Actualizar URL si cambió
+            boolean changed = false;
             if (item.getUrlEspecifica() != null &&
                 !item.getUrlEspecifica().equals(productoTienda.getUrlEspecifica())) {
                 productoTienda.setUrlEspecifica(item.getUrlEspecifica());
+                changed = true;
+            }
+            if (item.getUrlImagen() != null &&
+                !item.getUrlImagen().equals(productoTienda.getUrlImagen())) {
+                productoTienda.setUrlImagen(item.getUrlImagen());
+                changed = true;
+            }
+            if (changed) {
                 productoTienda = productoTiendaRepository.save(productoTienda);
             }
         }

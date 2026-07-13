@@ -51,4 +51,10 @@ public class ItemIngestaDto {
      */
     @NotBlank(message = "La palabra clave buscada es obligatoria")
     private String palabraClaveBuscada;
+
+    /**
+     * URL de la imagen del producto en la tienda, extraída durante el scraping.
+     * Puede ser null si el scraper no encontró imagen.
+     */
+    private String urlImagen;
 }
