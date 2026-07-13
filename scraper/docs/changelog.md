@@ -4,6 +4,44 @@ Historial de control de cambios del desarrollo del scraper. Organizado de forma 
 
 ---
 
+## [2.1.1] - 2026-07-12
+
+### Añadido: Soporte específico para Supermercados Vea
+
+*   **`VeaScraper` (`src/scrapers/vea_scraper.py`)** — archivo nuevo:
+    *   Implementado scraper concreto para Supermercados Vea, que opera sobre la plataforma VTEX IO (`vea.com.ar`).
+    *   Hereda directamente de `BaseScraper` (implementación autónoma, sin depender de `GenericJsonLdScraper`).
+    *   Genera la URL de búsqueda con el formato VTEX estándar: `/{query}?_q={query}&map=ft`
+        (ejemplo: `https://www.vea.com.ar/picadillo?_q=picadillo&map=ft`).
+    *   **Estrategia de parseo en dos capas:**
+        1.  **JSON-LD (Schema.org `Product`)**: prioridad principal. Extrae `name`, `image`, `offers.lowPrice` / `offers.price` y `offers.availability` del bloque `<script type="application/ld+json">`.
+        2.  **Selectores CSS (fallback)**: si el JSON-LD no está disponible o está incompleto, intenta extraer nombre, precio e imagen mediante selectores VTEX (`sellingPrice`, `bestPrice`, `offer-price`, etc.).
+    *   Incluye el campo `url_imagen` en el dict de retorno, compatible con el campo `urlImagen` del payload `ItemIngestaDto`.
+    *   Usa `offers.lowPrice` como precio primario (precio más bajo disponible), con fallback a `offers.price`.
+
+### Refactorizado: `ScraperFactory`
+
+*   **`ScraperFactory` (`src/scrapers/scraper_factory.py`)**:
+    *   Reemplazada la cadena de `if/elif` de detección de dominio por un **diccionario declarativo `_SCRAPER_MAP`** (atributo de clase), lo que facilita agregar nuevos scrapers sin modificar lógica de control.
+    *   Registro actualizado con los cuatro dominios soportados:
+
+        | Dominio | Scraper |
+        |---|---|
+        | `comodinencasa.com.ar` | `ComodinEncasaScraper` |
+        | `vea.com.ar` | `VeaScraper` |
+        | `diaonline.supermercadosdia.com.ar` | `DiaScraper` |
+        | `supermercadosdia.com.ar` | `DiaScraper` |
+
+    *   El `store_name` para el fallback genérico ahora se deriva del dominio parseado directamente en la rama de fallback, eliminando el bug de `UnboundLocalError` que ocurría cuando el dominio era vacío/inválido.
+    *   Añadida guarda temprana para URL vacía (`return None`) antes del parseo.
+
+### Actualizado: Módulo de scrapers
+
+*   **`src/scrapers/__init__.py`**:
+    *   Añadidas las importaciones y exportaciones de `DiaScraper` y `VeaScraper` en `__all__`, haciendo a ambas clases accesibles desde el paquete `src.scrapers` sin importación directa del submódulo.
+
+---
+
 ## [2.1.0] - 2026-07-09
 
 ### Añadido: Soporte para Imágenes de Productos
