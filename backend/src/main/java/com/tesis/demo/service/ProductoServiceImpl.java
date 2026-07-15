@@ -1,9 +1,11 @@
 package com.tesis.demo.service;
 
+import com.tesis.demo.dto.ProductoBusquedaDto;
 import com.tesis.demo.dto.ProductoDto;
 import com.tesis.demo.model.Categoria;
 import com.tesis.demo.model.Producto;
 import com.tesis.demo.repository.CategoriaRepository;
+import com.tesis.demo.repository.HistorialPrecioRepository;
 import com.tesis.demo.repository.ProductoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +19,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final HistorialPrecioRepository historialPrecioRepository;
 
     @Override
     @Transactional
@@ -43,6 +46,12 @@ public class ProductoServiceImpl implements ProductoService {
     public Page<ProductoDto> buscar(String nombre, String marca, Long categoriaId, Pageable pageable) {
         return productoRepository.buscarAvanzado(nombre, marca, categoriaId, pageable)
                 .map(this::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductoBusquedaDto> buscarConPrecios(String query, Pageable pageable) {
+        return historialPrecioRepository.buscarProductosConPrecios(query, pageable);
     }
 
     @Override

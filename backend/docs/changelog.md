@@ -1,5 +1,9 @@
 # Historial de tareas ejecutadas
 
+## [v2.3] - Buscador de Productos con Precios
+- Creado `ProductoBusquedaDto` para aplanar la respuesta de la información del producto, el supermercado y el precio actual.
+- Añadida consulta JPQL optimizada en `HistorialPrecioRepository` para extraer el último precio de cada tienda mediante subconsultas.
+- Expuesto nuevo endpoint `GET /api/v1/productos/busqueda` que une el maestro de productos con su último precio registrado y es accesible por cualquier usuario autenticado.
 ## [v2.2] - Persistencia de Imágenes de Productos
 - Añadido el campo `urlImagen` al modelo `ProductoTienda` (columna `url_imagen` tipo `TEXT`) para persistir la URL de la imagen del producto obtenida directamente del supermercado.
 - Actualizado `ItemIngestaDto` para recibir `urlImagen` en el payload de ingesta masiva desde el scraper.

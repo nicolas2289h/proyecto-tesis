@@ -72,6 +72,11 @@
   - Descripción: Busca y lista productos maestros con opciones de filtrado y paginación.
   - Query Params: nombre, marca, categoriaId, page, size, sort
   - Response: ApiResponse<Page<ProductoDto>>
+- GET /api/v1/productos/busqueda
+  - Descripción: Busca productos por nombre o marca y devuelve los resultados combinados con su último precio y supermercado.
+  - Query Params: q (término de búsqueda), page, size, sort
+  - Response: ApiResponse<Page<ProductoBusquedaDto>>
+  - Seguridad: requiere JWT
 - GET /api/v1/productos/{id}
   - Descripción: Obtiene un producto maestro específico por su ID.
   - Response: ApiResponse<ProductoDto>
