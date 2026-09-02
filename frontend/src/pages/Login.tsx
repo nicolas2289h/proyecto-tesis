@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import api from '../api/axios'
 import { useAuthStore } from '../store/authStore'
 import { AxiosError } from 'axios'
@@ -11,11 +11,18 @@ type LoginForm = {
 
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const setAuth = useAuthStore((state) => state.setAuth)
   const [form, setForm] = useState<LoginForm>({ email: '', password: '' })
   const [errors, setErrors] = useState<Partial<LoginForm>>({})
   const [submitting, setSubmitting] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (searchParams.get('expired') === 'true' || searchParams.get('unauthorized') === 'true') {
+      setApiError('Sesión expirada o permisos insuficientes.')
+    }
+  }, [searchParams])
 
   const validate = (data: LoginForm) => {
     const next: Partial<LoginForm> = {}
@@ -42,11 +49,9 @@ export default function Login() {
       const response = await api.post('/auth/login', form)
       const { data } = response.data
       
-      // El backend devuelve LoginResponseDto: { token, email, roles }
-      // El store espera User: { id, email, nombre }
-      // Como el login no devuelve el id y nombre completos, podemos guardar lo que tenemos
+      // El backend ahora devuelve LoginResponseDto completo: { token, id, email, nombre, roles }
       setAuth(
-        { id: 0, email: data.email, nombre: data.email.split('@')[0] }, 
+        { id: data.id, email: data.email, nombre: data.nombre, roles: data.roles }, 
         data.token
       )
       

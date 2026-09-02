@@ -1,20 +1,14 @@
 import { useState, useEffect } from 'react'
-import api from '../api/axios'
-import { AxiosError } from 'axios'
-
-interface ListaCompra {
-  id: number;
-  nombreLista: string;
-  fechaCreacion: string;
-  favorita: boolean;
-}
+import { useNavigate } from 'react-router-dom'
+import { listaApi } from '../api/listaApi'
+import type { ListaCompraDetalle } from '../types/Supermercado'
 
 export default function MyLists() {
-  const [listas, setListas] = useState<ListaCompra[]>([])
+  const navigate = useNavigate()
+  const [listas, setListas] = useState<ListaCompraDetalle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
-  // Estado para el formulario de creación/edición
+
   const [isEditing, setIsEditing] = useState<number | null>(null)
   const [formName, setFormName] = useState('')
   const [formFav, setFormFav] = useState(false)
@@ -23,10 +17,12 @@ export default function MyLists() {
   const fetchListas = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/listas')
-      setListas(response.data.data)
+      setError(null)
+      const data = await listaApi.getAll()
+      setListas(data)
     } catch (err) {
-      setError('Error al cargar las listas')
+      console.error('Error cargando listas:', err)
+      setError('Error al cargar las listas. Revisá la conexión.')
     } finally {
       setLoading(false)
     }
@@ -39,19 +35,20 @@ export default function MyLists() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName.trim()) return
-    
+
     setSubmitting(true)
     try {
       if (isEditing) {
-        await api.put(`/listas/${isEditing}`, { nombreLista: formName, favorita: formFav })
+        await listaApi.update(isEditing, formName, formFav)
       } else {
-        await api.post('/listas', { nombreLista: formName, favorita: formFav })
+        await listaApi.create(formName, formFav)
       }
       setFormName('')
       setFormFav(false)
       setIsEditing(null)
       fetchListas()
     } catch (err) {
+      console.error('Error guardando lista:', err)
       alert('Error al guardar la lista')
     } finally {
       setSubmitting(false)
@@ -61,53 +58,60 @@ export default function MyLists() {
   const handleDelete = async (id: number) => {
     if (!confirm('¿Estás seguro de eliminar esta lista?')) return
     try {
-      await api.delete(`/listas/${id}`)
+      await listaApi.remove(id)
       fetchListas()
     } catch (err) {
+      console.error('Error eliminando lista:', err)
       alert('Error al eliminar la lista')
     }
   }
 
-  const toggleFav = async (id: number) => {
+  const toggleFav = async (id: number, current: boolean, e: React.MouseEvent) => {
+    e.stopPropagation()
     try {
-      await api.patch(`/listas/${id}/favorita`)
-      // Actualización optimista
-      setListas(prev => prev.map(l => l.id === id ? { ...l, favorita: !l.favorita } : l))
+      setListas(prev => prev.map(l => l.id === id ? { ...l, favorita: !current } : l))
+      await listaApi.toggleFavorita(id)
     } catch (err) {
+      console.error('Error toggling fav:', err)
+      setListas(prev => prev.map(l => l.id === id ? { ...l, favorita: current } : l))
       alert('Error al actualizar favorito')
     }
   }
 
-  const startEdit = (lista: ListaCompra) => {
+  const startEdit = (lista: ListaCompraDetalle, e: React.MouseEvent) => {
+    e.stopPropagation()
     setIsEditing(lista.id)
     setFormName(lista.nombreLista)
     setFormFav(lista.favorita)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const goToDetail = (id: number) => {
+    navigate(`/mis-listas/${id}`)
+  }
+
   if (loading) return <div className="container"><p>Cargando listas...</p></div>
 
   return (
-    <div className="container" style={{ 
-      maxWidth: '800px',
+    <div className="container" style={{
+      maxWidth: '900px',
       background: 'var(--white)',
       border: '1px solid var(--accent-color)',
       padding: '2rem'
     }}>
       <h1 className="title" style={{ color: 'var(--primary-color)', marginBottom: '1.5rem' }}>Mis Listas</h1>
-      
-      {/* Formulario de CRUD */}
-      <div style={{ 
-        backgroundColor: 'var(--secondary-color)', 
-        padding: '1.5rem', 
-        borderRadius: '12px', 
+
+      <div style={{
+        backgroundColor: 'var(--secondary-color)',
+        padding: '1.5rem',
+        borderRadius: '12px',
         marginBottom: '2rem',
         border: '1px solid var(--accent-color)',
         boxShadow: 'var(--card-shadow)'
       }}>
-        <h2 style={{ 
-          fontSize: '1.25rem', 
-          marginBottom: '1.25rem', 
+        <h2 style={{
+          fontSize: '1.25rem',
+          marginBottom: '1.25rem',
           color: 'var(--text-dark)',
           fontWeight: '700'
         }}>
@@ -116,7 +120,7 @@ export default function MyLists() {
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label className="label" style={{ color: 'var(--text-dark)' }}>Nombre de la lista</label>
-            <input 
+            <input
               className="input"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
@@ -129,18 +133,18 @@ export default function MyLists() {
               }}
             />
           </div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.75rem', 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
             marginBottom: '1.5rem',
             color: 'var(--text-dark)',
             fontSize: '0.9rem',
             cursor: 'pointer'
           }}>
-            <input 
-              type="checkbox" 
-              id="fav" 
+            <input
+              type="checkbox"
+              id="fav"
               checked={formFav}
               onChange={(e) => setFormFav(e.target.checked)}
               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
@@ -154,13 +158,13 @@ export default function MyLists() {
               {submitting ? 'Guardando...' : (isEditing ? 'Actualizar Lista' : 'Crear Lista')}
             </button>
             {isEditing && (
-              <button 
-                className="btn" 
-                type="button" 
-                onClick={() => { setIsEditing(null); setFormName(''); setFormFav(false); }}
-                style={{ 
-                  backgroundColor: '#6b7280', 
-                  flex: 1 
+              <button
+                className="btn"
+                type="button"
+                onClick={() => { setIsEditing(null); setFormName(''); setFormFav(false) }}
+                style={{
+                  backgroundColor: '#6b7280',
+                  flex: 1
                 }}
               >
                 Cancelar
@@ -170,12 +174,25 @@ export default function MyLists() {
         </form>
       </div>
 
-      {/* Visualización de Listas */}
+      {error && (
+        <div style={{
+          textAlign: 'center',
+          padding: '1rem',
+          backgroundColor: '#fee2e2',
+          color: '#dc2626',
+          borderRadius: '12px',
+          marginBottom: '1.5rem',
+          fontWeight: '600'
+        }}>
+          {error}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gap: '1rem' }}>
         {listas.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '3rem', 
+          <div style={{
+            textAlign: 'center',
+            padding: '3rem',
             color: 'var(--text-muted)',
             backgroundColor: 'var(--secondary-color)',
             borderRadius: '12px',
@@ -186,27 +203,31 @@ export default function MyLists() {
           </div>
         ) : (
           listas.map((lista) => (
-            <div key={lista.id} style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '1.25rem',
-              backgroundColor: 'var(--white)',
-              borderRadius: '12px',
-              boxShadow: 'var(--card-shadow)',
-              border: lista.favorita ? '2px solid #fbbf24' : '1px solid var(--accent-color)',
-              transition: 'transform 0.2s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+            <div
+              key={lista.id}
+              onClick={() => goToDetail(lista.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '1.25rem',
+                backgroundColor: 'var(--white)',
+                borderRadius: '12px',
+                boxShadow: 'var(--card-shadow)',
+                border: lista.favorita ? '2px solid #fbbf24' : '1px solid var(--accent-color)',
+                transition: 'transform 0.2s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-                <button 
-                  onClick={() => toggleFav(lista.id)}
-                  style={{ 
-                    background: 'none', 
-                    border: 'none', 
-                    fontSize: '1.75rem', 
+                <button
+                  onClick={(e) => toggleFav(lista.id, lista.favorita, e)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.75rem',
                     cursor: 'pointer',
                     color: lista.favorita ? '#fbbf24' : 'var(--text-muted)',
                     padding: 0,
@@ -222,27 +243,29 @@ export default function MyLists() {
                   {lista.favorita ? '★' : '☆'}
                 </button>
                 <div>
-                  <h3 style={{ 
-                    margin: 0, 
-                    fontWeight: '700', 
+                  <h3 style={{
+                    margin: 0,
+                    fontWeight: '700',
                     color: 'var(--text-dark)',
                     fontSize: '1.1rem'
                   }}>
                     {lista.nombreLista}
                   </h3>
                   <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
-                    📅 {new Date(lista.fechaCreacion).toLocaleDateString()}
+                    📅 {new Date(lista.fechaCreacion).toLocaleDateString()} ·
+                    {lista.items ? ` ${lista.items.length} producto${lista.items.length !== 1 ? 's' : ''}` : ' 0 productos'}
+                    {lista.totalEstimado ? ` · $${lista.totalEstimado.toLocaleString('es-AR')}` : ''}
                   </small>
                 </div>
               </div>
-              
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button 
-                  onClick={() => startEdit(lista)}
-                  style={{ 
-                    padding: '0.5rem 1rem', 
-                    fontSize: '0.875rem', 
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)', 
+
+              <div style={{ display: 'flex', gap: '0.5rem' }} onClick={(e) => e.stopPropagation()}>
+                <button
+                  onClick={(e) => startEdit(lista, e)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
                     color: '#2563eb',
                     border: 'none',
                     borderRadius: '8px',
@@ -252,12 +275,12 @@ export default function MyLists() {
                 >
                   Editar
                 </button>
-                <button 
+                <button
                   onClick={() => handleDelete(lista.id)}
-                  style={{ 
-                    padding: '0.5rem 1rem', 
-                    fontSize: '0.875rem', 
-                    backgroundColor: 'rgba(220, 38, 38, 0.1)', 
+                  style={{
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'rgba(220, 38, 38, 0.1)',
                     color: '#dc2626',
                     border: 'none',
                     borderRadius: '8px',

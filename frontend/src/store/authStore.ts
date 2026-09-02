@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 
-interface User {
+export interface User {
   id: number;
   email: string;
   nombre: string;
+  roles?: string[];
 }
 
 interface AuthState {
@@ -12,6 +13,14 @@ interface AuthState {
   setAuth: (user: User, token: string) => void;
   logout: () => void;
 }
+
+export const isAdmin = (user: User | null | undefined): boolean => {
+  if (!user || !user.roles) return false;
+  return user.roles.some((r) => {
+    const roleUpper = r.toUpperCase();
+    return roleUpper === 'ADMIN' || roleUpper === 'ADMINISTRADOR' || roleUpper === 'ROLE_ADMIN' || roleUpper === 'ROLE_ADMINISTRADOR';
+  });
+};
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: JSON.parse(localStorage.getItem('user') || 'null'),
