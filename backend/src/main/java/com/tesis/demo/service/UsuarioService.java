@@ -12,6 +12,8 @@ public interface UsuarioService {
     UsuarioDto registrar(UsuarioCreateDto dto);
     List<UsuarioDto> listar();
     UsuarioDto asignarRol(AssignRoleDto dto);
+    UsuarioDto actualizarEstado(Long id, String nuevoEstado, String adminEmail);
     Rol crearRol(RolDto rolDto);
     List<Rol> listarRoles();
 }
+

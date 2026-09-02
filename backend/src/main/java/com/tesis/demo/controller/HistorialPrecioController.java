@@ -3,6 +3,7 @@ package com.tesis.demo.controller;
 import com.tesis.demo.dto.ApiResponse;
 import com.tesis.demo.dto.HistorialPrecioCreateDto;
 import com.tesis.demo.dto.HistorialPrecioDto;
+import com.tesis.demo.dto.ProductoBusquedaDto;
 import com.tesis.demo.service.HistorialPrecioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +49,12 @@ public class HistorialPrecioController {
     @GetMapping("/producto-maestro/{productoId}/historico")
     public ResponseEntity<ApiResponse<List<HistorialPrecioDto>>> listarHistoricoPorProductoMaestro(@PathVariable Long productoId) {
         return ResponseEntity.ok(ApiResponse.success(historialPrecioService.listarHistoricoPorProductoMaestro(productoId)));
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<ApiResponse<List<ProductoBusquedaDto>>> buscarProductos(
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) Long supermercadoId) {
+        return ResponseEntity.ok(ApiResponse.success(historialPrecioService.buscarProductos(nombre, supermercadoId)));
     }
 }

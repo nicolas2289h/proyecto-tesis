@@ -51,4 +51,10 @@ public class ItemIngestaDto {
      */
     @NotBlank(message = "La palabra clave buscada es obligatoria")
     private String palabraClaveBuscada;
+
+    /**
+     * URL de la imagen del producto en la tienda específica.
+     * Ejemplo: "https://supermercado.com.ar/imagenes/fideo.jpg".
+     */
+    private String urlImagen;
 }

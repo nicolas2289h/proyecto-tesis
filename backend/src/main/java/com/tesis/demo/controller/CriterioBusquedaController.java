@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class CriterioBusquedaController {
     private final CriterioBusquedaService criterioBusquedaService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
     public ResponseEntity<ApiResponse<CriterioBusquedaDto>> crear(
             @Valid @RequestBody CriterioBusquedaDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -49,6 +51,7 @@ public class CriterioBusquedaController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
     public ResponseEntity<ApiResponse<CriterioBusquedaDto>> actualizar(
             @PathVariable Long id, @Valid @RequestBody CriterioBusquedaDto dto) {
         return ResponseEntity.ok(ApiResponse.success(
@@ -56,6 +59,7 @@ public class CriterioBusquedaController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
     public ResponseEntity<ApiResponse<Void>> eliminar(@PathVariable Long id) {
         criterioBusquedaService.eliminar(id);
         return ResponseEntity.ok(ApiResponse.success("Criterio de búsqueda eliminado", null));

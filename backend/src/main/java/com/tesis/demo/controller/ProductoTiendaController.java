@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class ProductoTiendaController {
     private final ProductoTiendaService productoTiendaService;
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
     public ResponseEntity<ApiResponse<ProductoTiendaDto>> save(@Valid @RequestBody ProductoTiendaDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED.value(), "Mapeo de producto creado", productoTiendaService.save(dto)));
@@ -45,11 +47,13 @@ public class ProductoTiendaController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
     public ResponseEntity<ApiResponse<ProductoTiendaDto>> update(@PathVariable Long id, @Valid @RequestBody ProductoTiendaDto dto) {
         return ResponseEntity.ok(ApiResponse.success("Mapeo de producto actualizado", productoTiendaService.update(id, dto)));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         productoTiendaService.delete(id);
         return ResponseEntity.ok(ApiResponse.success("Mapeo de producto eliminado", null));

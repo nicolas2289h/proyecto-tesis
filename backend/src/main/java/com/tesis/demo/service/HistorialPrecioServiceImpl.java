@@ -2,6 +2,7 @@ package com.tesis.demo.service;
 
 import com.tesis.demo.dto.HistorialPrecioCreateDto;
 import com.tesis.demo.dto.HistorialPrecioDto;
+import com.tesis.demo.dto.ProductoBusquedaDto;
 import com.tesis.demo.model.HistorialPrecio;
 import com.tesis.demo.model.ProductoTienda;
 import com.tesis.demo.repository.HistorialPrecioRepository;
@@ -108,5 +109,13 @@ public class HistorialPrecioServiceImpl implements HistorialPrecioService {
                 historialPrecio.getPrecio(),
                 historialPrecio.getFechaRecoleccion()
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductoBusquedaDto> buscarProductos(String nombre, Long supermercadoId) {
+        // Si nombre está vacío, lo convertimos a null para la consulta
+        String nombreParam = (nombre == null || nombre.trim().isEmpty()) ? null : nombre.trim();
+        return historialPrecioRepository.buscarProductos(nombreParam, supermercadoId);
     }
 }

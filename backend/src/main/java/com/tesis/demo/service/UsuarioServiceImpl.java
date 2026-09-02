@@ -87,6 +87,29 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public UsuarioDto actualizarEstado(Long id, String nuevoEstado, String adminEmail) {
+        log.info("Inicia actualizarEstado usuarioId={}, nuevoEstado={}, adminEmail={}", id, nuevoEstado, adminEmail);
+        
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+
+        String estadoNormalizado = nuevoEstado != null ? nuevoEstado.trim().toUpperCase() : "";
+        if (!"ACTIVO".equals(estadoNormalizado) && !"INACTIVO".equals(estadoNormalizado)) {
+            throw new IllegalArgumentException("El estado debe ser ACTIVO o INACTIVO");
+        }
+
+        // Evitar que el administrador se inhabilite a sí mismo
+        if ("INACTIVO".equals(estadoNormalizado) && adminEmail != null && adminEmail.equalsIgnoreCase(usuario.getEmail())) {
+            throw new IllegalArgumentException("No puede inhabilitar su propia cuenta de administrador en sesión.");
+        }
+
+        usuario.setEstado(estadoNormalizado);
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("Estado de usuario actualizado exitosamente: id={}, nuevoEstado={}", id, estadoNormalizado);
+        return toDto(guardado);
+    }
+
+    @Override
     public Rol crearRol(RolDto rolDto) {
         log.info("Inicia crearRol {}", rolDto);
         Rol nuevoRol = new Rol();
