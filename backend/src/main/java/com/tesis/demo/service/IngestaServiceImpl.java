@@ -158,18 +158,21 @@ public class IngestaServiceImpl implements IngestaService {
             log.debug("[IngestaService] Nuevo ProductoTienda creado: ID={}", productoTienda.getId());
         } else {
             productoTienda = productoTiendaOpt.get();
+            boolean changed = false;
             // Actualizar URL si cambió
             if (item.getUrlEspecifica() != null &&
                 !item.getUrlEspecifica().equals(productoTienda.getUrlEspecifica())) {
                 productoTienda.setUrlEspecifica(item.getUrlEspecifica());
+                changed = true;
             }
             // Actualizar URL de imagen si cambió
             if (item.getUrlImagen() != null &&
                 !item.getUrlImagen().equals(productoTienda.getUrlImagen())) {
                 productoTienda.setUrlImagen(item.getUrlImagen());
+                changed = true;
             }
-            // Guardar si hubo cambios
-            if (item.getUrlEspecifica() != null || item.getUrlImagen() != null) {
+            // Persistir solo si hubo cambios reales
+            if (changed) {
                 productoTienda = productoTiendaRepository.save(productoTienda);
             }
         }
@@ -201,7 +204,7 @@ public class IngestaServiceImpl implements IngestaService {
                 return criterio.getCategoria();
             }
         } catch (Exception e) {
-            log.warn("[IngestaService] No se encontró criterio de búsqueda para '{}'. Usando categoría por defecto.", palabraClave);
+            log.warn("[IngestaService] Error al resolver categoría para '{}': {}. Usando categoría por defecto.", palabraClave, e.getMessage());
         }
         // Fallback: primera categoría disponible
         return categoriaRepository.findAll().stream()
