@@ -15,6 +15,14 @@ class ScraperFactory:
     Factoría para obtener el scraper específico según la URL base del supermercado.
     """
 
+    # Mapeo de dominios a scrapers específicos
+    _SCRAPER_MAP = {
+        "comodinencasa.com.ar": ComodinEncasaScraper,
+        "vea.com.ar": VeaScraper,
+        "diaonline.supermercadosdia.com.ar": DiaScraper,
+        "supermercadosdia.com.ar": DiaScraper,
+    }
+
     @staticmethod
     def get_scraper(url: str) -> Optional[BaseScraper]:
         """
@@ -26,6 +34,10 @@ class ScraperFactory:
         Returns:
             Instancia de BaseScraper o None si no se encuentra un scraper específico.
         """
+        if not url:
+            logger.warning("Fábrica de scrapers recibió una URL vacía.")
+            return None
+
         try:
             parsed_url = urlparse(url)
             domain = parsed_url.netloc.lower()
@@ -33,19 +45,13 @@ class ScraperFactory:
             logger.error(f"Error parseando la URL '{url}': {e}")
             return GenericJsonLdScraper()
 
-        # Mapeo de dominios a scrapers específicos
-        scraper_map = {
-            "comodinencasa.com.ar": ComodinEncasaScraper,
-            "vea.com.ar": VeaScraper,
-            "diaonline.supermercadosdia.com.ar": DiaScraper
-        }
-
         # Buscar el dominio exacto o parcial en el mapa
-        for target_domain, scraper_class in scraper_map.items():
+        for target_domain, scraper_class in ScraperFactory._SCRAPER_MAP.items():
             if target_domain in domain:
-                logger.info(f"Scraper específico detectado para {target_domain}")
+                logger.info(f"Scraper específico detectado para {target_domain}.")
                 return scraper_class()
 
         # Si no se encontró ningún scraper específico, usar el genérico
-        logger.info(f"No hay scraper específico para {domain}. Usando scraper genérico JSON-LD.")
-        return GenericJsonLdScraper()
+        store_name = domain.replace("www.", "").split(".")[0].capitalize() if domain else "Tienda Genérica"
+        logger.info(f"No hay scraper específico para '{domain}'. Usando scraper genérico JSON-LD para: '{store_name}'.")
+        return GenericJsonLdScraper(store_name)
