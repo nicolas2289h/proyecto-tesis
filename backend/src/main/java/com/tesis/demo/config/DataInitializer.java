@@ -9,12 +9,14 @@ import com.tesis.demo.repository.SupermercadoRepository;
 import com.tesis.demo.repository.UsuarioRepository;
 import com.tesis.demo.repository.UsuarioRolRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
+@Profile("!prod")  // No ejecutar en producción
 public class DataInitializer implements CommandLineRunner {
 
     private final RolRepository rolRepository;
@@ -82,7 +84,7 @@ public class DataInitializer implements CommandLineRunner {
             supermercado.setNombre(nombre);
             supermercado.setUrlBase(urlBase);
             supermercadoRepository.save(supermercado);
-            System.out.println("Supermercado de prueba creado: " + nombre);
+            System.out.println("[DataInitializer] Supermercado creado: " + nombre);
         }
     }
 
@@ -102,7 +104,7 @@ public class DataInitializer implements CommandLineRunner {
             usuarioRol.setRol(rol);
             usuarioRolRepository.save(usuarioRol);
 
-            System.out.println("Usuario de prueba creado: " + email + " / " + password);
+            System.out.println("[DataInitializer] Usuario creado: " + email);  // Contraseña no se loguea
         }
     }
 }

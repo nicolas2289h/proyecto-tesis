@@ -1,6 +1,9 @@
 package com.tesis.demo.exception;
 
 import com.tesis.demo.dto.ApiResponse;
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -15,6 +18,10 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // ── Autenticación y autorización ──────────────────────────────────────────
 
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<ApiResponse<Void>> handleDisabled(DisabledException ex) {
@@ -34,6 +41,8 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(HttpStatus.FORBIDDEN.value(), "Acceso denegado: permisos insuficientes."));
     }
 
+    // ── Errores de validación / lógica de negocio (4xx) ──────────────────────
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
         String errorMsg = ex.getBindingResult().getFieldErrors().stream()
@@ -49,15 +58,25 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleEntityNotFound(EntityNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(HttpStatus.NOT_FOUND.value(), ex.getMessage()));
+    }
+
+    // ── Errores inesperados del servidor (5xx) ────────────────────────────────
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Void>> handleRuntime(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value(), ex.getMessage()));
+        log.error("[GlobalExceptionHandler] Error inesperado de runtime: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error interno del servidor. Intente nuevamente más tarde."));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneral(Exception ex) {
+        log.error("[GlobalExceptionHandler] Error general no controlado: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error interno del servidor: " + ex.getMessage()));
+                .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error interno del servidor. Intente nuevamente más tarde."));
     }
 }
