@@ -1,5 +1,24 @@
 # Historial de tareas ejecutadas
 
+## [v2.3] - Panel de Administración, Seguridad y Endpoints de Búsqueda
+- **Seguridad y Permisos:** 
+  - Se habilitaron como públicos los endpoints de lectura (`GET`) para productos, precios y supermercados.
+  - Se restringieron las mutaciones (crear, editar, eliminar) de catálogos y tiendas exclusivamente a roles `ADMIN` y `ADMINISTRADOR`.
+- **Panel de Administración:**
+  - Añadido el endpoint `PATCH /api/v1/usuarios/{id}/estado` para inhabilitar o reactivar usuarios (impidiendo que un administrador se inhabilite a sí mismo).
+  - Creado `DataInitializer` para poblar automáticamente la base de datos en entornos de desarrollo con roles (`ADMIN`, `USER`), supermercados básicos y usuarios de prueba.
+- **Búsqueda y Comparativa:**
+  - Añadido el endpoint `GET /api/v1/productos/comparativo/todos` para devolver la grilla de productos con su último precio.
+  - Añadido el endpoint `GET /api/v1/precios/buscar` para buscar productos por nombre o supermercado con su precio más reciente.
+- **Manejo de Errores:**
+  - Implementado `GlobalExceptionHandler` para centralizar y estandarizar las respuestas de error en formato `ApiResponse`.
+
+## [v2.2] - Persistencia de Imágenes de Productos
+- Añadido el campo `urlImagen` al modelo `ProductoTienda` (columna `url_imagen` tipo `TEXT`) para persistir la URL de la imagen del producto obtenida directamente del supermercado.
+- Actualizado `ItemIngestaDto` para recibir `urlImagen` en el payload de ingesta masiva desde el scraper.
+- Modificado `IngestaServiceImpl` para guardar la URL de la imagen al crear nuevos mapeos o actualizarla si difiere de la existente.
+- Actualizado `ProductoTiendaDto` y el mapeo en `ProductoTiendaServiceImpl` para devolver `urlImagen` en las respuestas de la API.
+
 ## [v2.1] - Validación Semántica y Filtro Léxico en Ingesta Masiva
 - Agregado el método `esItemCompatible` en `NormalizacionService` e implementado en `NormalizacionServiceImpl` para validar que el texto crudo del producto corresponda a la palabra clave buscada.
   - **Filtro Positivo:** Requiere que el título contenga la palabra clave o su singular (ej: "sardina" o "sardinas"). Flexibilidad añadida para que "chocolatada" acepte "chocolate" + "leche"/"bebida".

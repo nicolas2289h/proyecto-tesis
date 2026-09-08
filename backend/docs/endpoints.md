@@ -34,7 +34,7 @@
   - Request: AssignRoleDto { usuarioId, rolId }
   - Response: ApiResponse<UsuarioDto>
   - Controlador: UsersController
-  - Seguridad: requiere JWT y rol adecuado (ajustable)
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 
 ## Roles
 - POST /api/v1/usuarios/roles
@@ -42,13 +42,13 @@
   - Request: RolDto { nombre }
   - Response: ApiResponse<Rol>
   - Controlador: UsersController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 
 - GET /api/v1/usuarios/roles
   - Descripción: Obtiene una lista de todos los roles disponibles.
   - Response: ApiResponse<List<Rol>>
   - Controlador: UsersController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 
 ## Catálogo Maestro
 ### Categorías
@@ -86,29 +86,35 @@
   - Request: ProductoDto { nombreGenerico, marca, categoriaId }
   - Response: ApiResponse<ProductoDto>
   - Controlador: ProductoController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 - GET /api/v1/productos
   - Descripción: Busca y lista productos maestros con opciones de filtrado y paginación.
   - Query Params: nombre, marca, categoriaId, page, size, sort
   - Response: ApiResponse<Page<ProductoDto>>
   - Controlador: ProductoController
-  - Seguridad: requiere JWT
+  - Seguridad: público (permitAll)
 - GET /api/v1/productos/{id}
   - Descripción: Obtiene un producto maestro específico por su ID.
   - Response: ApiResponse<ProductoDto>
   - Controlador: ProductoController
-  - Seguridad: requiere JWT
+  - Seguridad: público (permitAll)
 - PUT /api/v1/productos/{id}
   - Descripción: Actualiza un producto maestro existente por su ID.
   - Request: ProductoDto { nombreGenerico, marca, categoriaId }
   - Response: ApiResponse<ProductoDto>
   - Controlador: ProductoController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 - DELETE /api/v1/productos/{id}
   - Descripción: Elimina un producto maestro por su ID.
   - Response: ApiResponse<Void>
   - Controlador: ProductoController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
+
+- GET /api/v1/productos/comparativo/todos
+  - Descripción: Obtiene una lista de productos comparativos con su precio más reciente y nombre del supermercado.
+  - Response: ApiResponse<List<ProductoComparativoDto>>
+  - Controlador: ProductoController
+  - Seguridad: público (permitAll)
 
 ## Estructura de Tiendas
 ### Supermercados
@@ -122,12 +128,12 @@
   - Descripción: Obtiene una lista de todos los supermercados registrados.
   - Response: ApiResponse<List<SupermercadoDto>>
   - Controlador: SupermercadoController
-  - Seguridad: requiere JWT
+  - Seguridad: público (permitAll)
 - GET /api/v1/supermercados/{id}
   - Descripción: Obtiene un supermercado específico por su ID.
   - Response: ApiResponse<SupermercadoDto>
   - Controlador: SupermercadoController
-  - Seguridad: requiere JWT
+  - Seguridad: público (permitAll)
 - PUT /api/v1/supermercados/{id}
   - Descripción: Actualiza un supermercado existente por su ID.
   - Request: SupermercadoDto { nombre, urlBase }
@@ -146,7 +152,7 @@
   - Request: ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno, urlImagen }
   - Response: ApiResponse<ProductoTiendaDto>
   - Controlador: ProductoTiendaController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 - GET /api/v1/productos-tienda
   - Descripción: Obtiene una lista de todos los mapeos de productos a tiendas.
   - Response: ApiResponse<List<ProductoTiendaDto>>
@@ -172,12 +178,12 @@
   - Request: ProductoTiendaDto { productoId, supermercadoId, urlEspecifica, codigoExterno, urlImagen }
   - Response: ApiResponse<ProductoTiendaDto>
   - Controlador: ProductoTiendaController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 - DELETE /api/v1/productos-tienda/{id}
   - Descripción: Elimina un mapeo por su ID.
   - Response: ApiResponse<Void>
   - Controlador: ProductoTiendaController
-  - Seguridad: requiere JWT
+  - Seguridad: requiere JWT con ROLE_ADMIN o ROLE_ADMINISTRADOR
 
 ## Historial Precios y Búsqueda de Productos
 - POST /api/v1/precios
