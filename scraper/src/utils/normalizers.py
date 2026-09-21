@@ -4,6 +4,30 @@ from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
 
+_STORE_ALIASES = {
+    "comodin": "Comodín en Casa",
+    "comodin en casa": "Comodín en Casa",
+    "comodinencasa": "Comodín en Casa",
+    "comodinencasa.com.ar": "Comodín en Casa",
+}
+
+
+def normalize_store_name(name: Optional[str]) -> str:
+    """Normaliza nombres de supermercado y unifica aliases como Comodín/Comodín en Casa."""
+    if not name:
+        return ""
+
+    value = name.strip().lower()
+    value = re.sub(r"[^a-z0-9]+", " ", value)
+    value = re.sub(r"\s+", " ", value).strip()
+
+    canonical = _STORE_ALIASES.get(value)
+    if canonical:
+        return canonical
+
+    return name.strip()
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Mapa de normalización de unidades de peso/volumen
 # ──────────────────────────────────────────────────────────────────────────────
@@ -22,6 +46,31 @@ _PESO_PATTERN = re.compile(
     r"(g|gr|grs|gramos?|kg|kgs?|kilos?|kilogramos?|ml|cc|l|lt|litros?)",
     re.IGNORECASE
 )
+
+
+def _parse_numeric_weight(value: str) -> float:
+    """Convierte un valor de peso sin perder miles ni decimales."""
+    text = value.strip()
+    if not text:
+        raise ValueError("Valor de peso vacío")
+
+    if "," in text and "." in text:
+        if text.rfind(",") > text.rfind("."):
+            text = text.replace(".", "").replace(",", ".")
+        else:
+            text = text.replace(",", "")
+    elif "," in text:
+        if re.fullmatch(r"\d{1,3}(?:,\d{3})+", text):
+            text = text.replace(",", "")
+        elif re.fullmatch(r"\d+(?:,\d+)", text):
+            text = text.replace(",", ".")
+        else:
+            text = text.replace(",", "")
+    elif "." in text:
+        if re.fullmatch(r"\d{1,3}(?:\.\d{3})+", text):
+            text = text.replace(".", "")
+
+    return float(text)
 
 
 def parse_weight(text: str) -> Dict[str, Optional[object]]:
@@ -54,11 +103,11 @@ def parse_weight(text: str) -> Dict[str, Optional[object]]:
     if not match:
         return {"peso_valor": None, "peso_unidad": None}
 
-    valor_str = match.group(1).replace(",", ".")
+    valor_str = match.group(1)
     unidad_raw = match.group(2).lower().strip()
 
     try:
-        peso_valor = float(valor_str)
+        peso_valor = _parse_numeric_weight(valor_str)
     except ValueError:
         logger.warning(f"No se pudo convertir el valor de peso '{valor_str}' a float.")
         return {"peso_valor": None, "peso_unidad": None}

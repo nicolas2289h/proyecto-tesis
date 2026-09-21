@@ -13,5 +13,6 @@ public interface ProductoService {
     Page<ProductoDto> buscar(String nombre, String marca, Long categoriaId, Pageable pageable);
     ProductoDto actualizar(Long id, ProductoDto dto);
     void eliminar(Long id);
+    void eliminarMasivo(List<Long> ids);
     List<ProductoComparativoDto> obtenerProductosComparativos();
 }

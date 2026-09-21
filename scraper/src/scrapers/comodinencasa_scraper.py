@@ -4,7 +4,7 @@ from typing import Dict, Any
 from bs4 import BeautifulSoup
 
 from ..base_scraper import BaseScraper
-from ..utils.normalizers import clean_price
+from ..utils.normalizers import clean_price, normalize_store_name
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class ComodinEncasaScraper(BaseScraper):
     """
 
     def get_store_name(self) -> str:
-        return "Comodín en Casa"
+        return normalize_store_name("Comodín en Casa")
 
     def parse(self, html: str, product_url: str = None) -> Dict[str, Any]:
         soup = BeautifulSoup(html, "html.parser")

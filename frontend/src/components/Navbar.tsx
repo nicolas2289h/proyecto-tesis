@@ -49,6 +49,7 @@ export default function Navbar() {
         {isAuthenticated && <li><Link to="/mis-listas">Mis Listas</Link></li>}
         {userIsAdmin && (
           <>
+            <li><Link to="/admin" className="admin-link">📊 Dashboard</Link></li>
             <li><Link to="/admin/usuarios" className="admin-link">👥 Usuarios</Link></li>
             <li><Link to="/admin/catalogo" className="admin-link">📦 Catálogo</Link></li>
           </>

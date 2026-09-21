@@ -72,7 +72,7 @@ public class NormalizacionServiceImpl implements NormalizacionService {
             String unidadStr = matcher.group(2) != null ? matcher.group(2) : matcher.group(4);
             if (valorStr != null) {
                 try {
-                    pesoValor = Double.parseDouble(valorStr.replace(',', '.'));
+                    pesoValor = parsePesoValor(valorStr);
                 } catch (NumberFormatException ignored) { /* valor inválido, ignorar */ }
             }
             if (unidadStr != null) {
@@ -275,6 +275,37 @@ public class NormalizacionServiceImpl implements NormalizacionService {
         if (u.matches("ml|cc")) return "ml";
         if (u.matches("l|lt|litros?")) return "l";
         return u;
+    }
+
+    private Double parsePesoValor(String raw) {
+        if (raw == null) {
+            return null;
+        }
+
+        String value = raw.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+
+        if (value.contains(",") && value.contains(".")) {
+            if (value.lastIndexOf(',') > value.lastIndexOf('.')) {
+                value = value.replace(".", "").replace(',', '.');
+            } else {
+                value = value.replace(",", "");
+            }
+        } else if (value.contains(",")) {
+            if (value.matches("\\d{1,3}(?:,\\d{3})+")) {
+                value = value.replace(",", "");
+            } else {
+                value = value.replace(',', '.');
+            }
+        } else if (value.contains(".")) {
+            if (value.matches("\\d{1,3}(?:\\.\\d{3})+")) {
+                value = value.replace(".", "");
+            }
+        }
+
+        return Double.parseDouble(value);
     }
 
     /**

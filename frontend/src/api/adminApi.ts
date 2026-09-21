@@ -68,6 +68,16 @@ export const adminApi = {
     return res.data?.data;
   },
 
+  createUsuario: async (dto: {
+    email: string;
+    password: string;
+    nombre: string;
+    estado?: 'ACTIVO' | 'INACTIVO';
+  }): Promise<UsuarioAdminDto> => {
+    const res = await api.post<ApiResponse<UsuarioAdminDto>>('/usuarios', dto);
+    return res.data?.data;
+  },
+
   getRoles: async (): Promise<RolAdminDto[]> => {
     const res = await api.get<ApiResponse<RolAdminDto[]>>('/usuarios/roles');
     return Array.isArray(res.data?.data) ? res.data.data : [];
@@ -125,6 +135,11 @@ export const adminApi = {
 
   eliminarProducto: async (id: number): Promise<void> => {
     await api.delete(`/productos/${id}`);
+  },
+
+  eliminarProductos: async (ids: number[]): Promise<void> => {
+    if (!ids.length) return;
+    await api.delete('/productos/bulk', { data: ids });
   },
 
   // ─── Mapeos Producto - Supermercado (CU-10) ──────────────────────────────

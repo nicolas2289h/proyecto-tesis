@@ -7,6 +7,7 @@ from .dia_scraper import DiaScraper
 from .vea_scraper import VeaScraper
 from .generic_jsonld_scraper import GenericJsonLdScraper
 from ..base_scraper import BaseScraper
+from ..utils.normalizers import normalize_store_name
 
 logger = logging.getLogger(__name__)
 
@@ -53,5 +54,6 @@ class ScraperFactory:
 
         # Si no se encontró ningún scraper específico, usar el genérico
         store_name = domain.replace("www.", "").split(".")[0].capitalize() if domain else "Tienda Genérica"
-        logger.info(f"No hay scraper específico para '{domain}'. Usando scraper genérico JSON-LD para: '{store_name}'.")
-        return GenericJsonLdScraper(store_name)
+        canonical_store_name = normalize_store_name(store_name)
+        logger.info(f"No hay scraper específico para '{domain}'. Usando scraper genérico JSON-LD para: '{canonical_store_name}'.")
+        return GenericJsonLdScraper(canonical_store_name)

@@ -57,6 +57,13 @@ public class ProductoController {
         return ResponseEntity.ok(ApiResponse.success("Producto eliminado", null));
     }
 
+    @DeleteMapping("/bulk")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
+    public ResponseEntity<ApiResponse<Void>> eliminarMasivo(@RequestBody List<Long> ids) {
+        productoService.eliminarMasivo(ids);
+        return ResponseEntity.ok(ApiResponse.success("Productos eliminados", null));
+    }
+
     @GetMapping("/comparativo/todos")
     public ResponseEntity<ApiResponse<List<ProductoComparativoDto>>> obtenerComparativos() {
         return ResponseEntity.ok(ApiResponse.success("Productos comparativos", productoService.obtenerProductosComparativos()));

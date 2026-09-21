@@ -14,24 +14,34 @@ import java.util.Optional;
 public interface HistorialPrecioRepository extends JpaRepository<HistorialPrecio, Long> {
     List<HistorialPrecio> findByProductoTiendaIdOrderByFechaRecoleccionDesc(Long productoTiendaId);
     Optional<HistorialPrecio> findTopByProductoTiendaIdOrderByFechaRecoleccionDesc(Long productoTiendaId);
+    void deleteByProductoTiendaId(Long productoTiendaId);
 
     /**
      * Consulta personalizada para obtener productos con su último precio, filtrando por nombre (si se proporciona) y supermercado (si se proporciona)
      */
     @Query("SELECT new com.tesis.demo.dto.ProductoBusquedaDto(" +
             "p.id, " +
-           "p.nombreGenerico, " +
-           "p.marca, " +
-           "hp.precio, " +
-           "pt.urlImagen, " +
-           "s.nombre) " +
-           "FROM HistorialPrecio hp " +
-           "JOIN hp.productoTienda pt " +
-           "JOIN pt.producto p " +
-           "JOIN pt.supermercado s " +
-           "WHERE hp.fechaRecoleccion = (SELECT MAX(hp2.fechaRecoleccion) FROM HistorialPrecio hp2 WHERE hp2.productoTienda.id = pt.id) " +
-           "AND (:nombre IS NULL OR :nombre = '' OR LOWER(p.nombreGenerico) LIKE LOWER(CONCAT('%', CAST(:nombre AS string), '%')) OR LOWER(p.marca) LIKE LOWER(CONCAT('%', CAST(:nombre AS string), '%'))) " +
-           "AND (:supermercadoId IS NULL OR s.id = :supermercadoId) " +
-           "ORDER BY hp.precio DESC")
+            "CASE " +
+            "   WHEN p.nombreGenerico IS NULL THEN '' " +
+            "   WHEN p.varianteEspecifica IS NULL AND p.pesoValor IS NULL AND (p.pesoUnidad IS NULL OR p.pesoUnidad = '') THEN p.nombreGenerico " +
+            "   ELSE CONCAT(" +
+            "       p.nombreGenerico, " +
+            "       CASE WHEN p.varianteEspecifica IS NULL OR p.varianteEspecifica = '' THEN '' ELSE CONCAT(' ', p.varianteEspecifica) END, " +
+            "       CASE WHEN p.pesoValor IS NULL THEN '' ELSE CONCAT(' ', CAST(p.pesoValor AS string)) END, " +
+            "       CASE WHEN p.pesoUnidad IS NULL OR p.pesoUnidad = '' THEN '' ELSE CONCAT(' ', p.pesoUnidad) END" +
+            "   ) " +
+            "END, " +
+            "p.marca, " +
+            "hp.precio, " +
+            "pt.urlImagen, " +
+            "s.nombre) " +
+            "FROM HistorialPrecio hp " +
+            "JOIN hp.productoTienda pt " +
+            "JOIN pt.producto p " +
+            "JOIN pt.supermercado s " +
+            "WHERE hp.fechaRecoleccion = (SELECT MAX(hp2.fechaRecoleccion) FROM HistorialPrecio hp2 WHERE hp2.productoTienda.id = pt.id) " +
+            "AND (:nombre IS NULL OR :nombre = '' OR LOWER(p.nombreGenerico) LIKE LOWER(CONCAT('%', CAST(:nombre AS string), '%')) OR LOWER(p.marca) LIKE LOWER(CONCAT('%', CAST(:nombre AS string), '%')) OR LOWER(p.varianteEspecifica) LIKE LOWER(CONCAT('%', CAST(:nombre AS string), '%'))) " +
+            "AND (:supermercadoId IS NULL OR s.id = :supermercadoId) " +
+            "ORDER BY hp.precio DESC")
     List<ProductoBusquedaDto> buscarProductos(@Param("nombre") String nombre, @Param("supermercadoId") Long supermercadoId);
 }

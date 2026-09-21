@@ -7,6 +7,7 @@ import MyLists from './pages/MyLists'
 import ListDetail from './pages/ListDetail'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminCatalog from './pages/admin/AdminCatalog'
+import AdminDashboard from './pages/admin/AdminDashboard'
 import Layout from './components/Layout'
 import AdminRoute from './components/AdminRoute'
 import './index.css'
@@ -61,6 +62,13 @@ export default function App() {
         } />
 
         {/* Rutas de Administración (CU-09 y CU-10) */}
+        <Route path="/admin" element={
+          <AdminRoute>
+            <Layout>
+              <AdminDashboard />
+            </Layout>
+          </AdminRoute>
+        } />
         <Route path="/admin/usuarios" element={
           <AdminRoute>
             <Layout>

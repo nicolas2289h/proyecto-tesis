@@ -4,8 +4,12 @@ import com.tesis.demo.dto.ProductoComparativoDto;
 import com.tesis.demo.dto.ProductoDto;
 import com.tesis.demo.model.Categoria;
 import com.tesis.demo.model.Producto;
+import com.tesis.demo.model.ProductoTienda;
 import com.tesis.demo.repository.CategoriaRepository;
+import com.tesis.demo.repository.HistorialPrecioRepository;
+import com.tesis.demo.repository.ItemListaRepository;
 import com.tesis.demo.repository.ProductoRepository;
+import com.tesis.demo.repository.ProductoTiendaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,6 +26,9 @@ public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final ProductoTiendaRepository productoTiendaRepository;
+    private final HistorialPrecioRepository historialPrecioRepository;
+    private final ItemListaRepository itemListaRepository;
 
     @Override
     @Transactional
@@ -79,10 +87,41 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     @Transactional
     public void eliminar(Long id) {
-        if (!productoRepository.existsById(id)) {
-            throw new RuntimeException("Producto no encontrado");
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        List<ProductoTienda> productosTienda = productoTiendaRepository.findByProductoId(id);
+        for (ProductoTienda productoTienda : productosTienda) {
+            historialPrecioRepository.deleteByProductoTiendaId(productoTienda.getId());
         }
-        productoRepository.deleteById(id);
+
+        if (!productosTienda.isEmpty()) {
+            productoTiendaRepository.deleteAll(productosTienda);
+        }
+
+        itemListaRepository.deleteByProductoId(id);
+        productoRepository.delete(producto);
+    }
+
+    @Override
+    @Transactional
+    public void eliminarMasivo(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IllegalArgumentException("Debe seleccionar al menos un producto para eliminar.");
+        }
+
+        List<Long> idsValidos = ids.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (idsValidos.isEmpty()) {
+            throw new IllegalArgumentException("Debe seleccionar al menos un producto para eliminar.");
+        }
+
+        for (Long id : idsValidos) {
+            eliminar(id);
+        }
     }
 
     @Override

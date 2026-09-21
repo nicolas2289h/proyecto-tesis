@@ -59,7 +59,12 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
      */
     @Query(value = "SELECT " +
             "p.id AS id, " +
-            "p.nombre_generico AS producto, " +
+            "CONCAT(" +
+            "  COALESCE(p.nombre_generico, ''), " +
+            "  CASE WHEN COALESCE(p.variante_especifica, '') = '' THEN '' ELSE CONCAT(' ', p.variante_especifica) END, " +
+            "  CASE WHEN p.peso_valor IS NULL THEN '' ELSE CONCAT(' ', CAST(p.peso_valor AS CHAR)) END, " +
+            "  CASE WHEN COALESCE(p.peso_unidad, '') = '' THEN '' ELSE CONCAT(' ', p.peso_unidad) END " +
+            ") AS producto, " +
             "p.marca, " +
             "hp.precio, " +
             "pt.url_imagen, " +
@@ -68,7 +73,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             "INNER JOIN productos_tienda pt ON p.id = pt.producto_id " +
             "INNER JOIN historial_precios hp ON pt.id = hp.producto_tienda_id " +
             "INNER JOIN supermercados s ON pt.supermercado_id = s.id " +
-            "GROUP BY p.id, p.nombre_generico, p.marca, hp.precio, pt.url_imagen, s.nombre " +
+            "GROUP BY p.id, p.nombre_generico, p.variante_especifica, p.peso_valor, p.peso_unidad, p.marca, hp.precio, pt.url_imagen, s.nombre " +
             "ORDER BY hp.precio DESC",
             nativeQuery = true)
     List<Object[]> obtenerProductosComparativos();

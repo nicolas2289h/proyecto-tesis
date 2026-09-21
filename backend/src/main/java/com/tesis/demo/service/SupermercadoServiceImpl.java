@@ -35,11 +35,12 @@ public class SupermercadoServiceImpl implements SupermercadoService {
     @Override
     @Transactional
     public SupermercadoDto save(SupermercadoDto supermercadoDto) {
-        if (supermercadoRepository.findByNombreIgnoreCase(supermercadoDto.getNombre()).isPresent()) {
+        String nombreCanonical = com.tesis.demo.util.SupermercadoNameNormalizer.canonicalize(supermercadoDto.getNombre());
+        if (supermercadoRepository.findByNombreEquivalent(nombreCanonical).isPresent()) {
             throw new RuntimeException("Ya existe un supermercado con ese nombre");
         }
         Supermercado supermercado = new Supermercado();
-        supermercado.setNombre(supermercadoDto.getNombre());
+        supermercado.setNombre(nombreCanonical);
         supermercado.setUrlBase(supermercadoDto.getUrlBase());
         return mapToDto(supermercadoRepository.save(supermercado));
     }
@@ -49,15 +50,16 @@ public class SupermercadoServiceImpl implements SupermercadoService {
     public SupermercadoDto update(Long id, SupermercadoDto supermercadoDto) {
         Supermercado supermercado = supermercadoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Supermercado no encontrado con ID: " + id));
-        
-        supermercadoRepository.findByNombreIgnoreCase(supermercadoDto.getNombre())
+
+        String nombreCanonical = com.tesis.demo.util.SupermercadoNameNormalizer.canonicalize(supermercadoDto.getNombre());
+        supermercadoRepository.findByNombreEquivalent(nombreCanonical)
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(id)) {
                         throw new RuntimeException("Ya existe otro supermercado con ese nombre");
                     }
                 });
 
-        supermercado.setNombre(supermercadoDto.getNombre());
+        supermercado.setNombre(nombreCanonical);
         supermercado.setUrlBase(supermercadoDto.getUrlBase());
         return mapToDto(supermercadoRepository.save(supermercado));
     }
