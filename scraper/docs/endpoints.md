@@ -13,6 +13,7 @@ Este documento detalla el contrato de integración de la API REST del Backend (S
 | **POST** | `/api/v1/precios` | Privado (`ROLE_ADMIN`) | [Legacy] Almacenamiento histórico de series de precios recolectados. |
 | **GET** | `/api/v1/extractor/targets` | Privado (`ROLE_ADMIN`) | [v2.0] Obtención de targets de descubrimiento (supermercado × keyword). |
 | **POST** | `/api/v1/extractor/ingesta-masiva` | Privado (`ROLE_ADMIN`) | [v2.0] Ingesta masiva de productos descubiertos en la grilla de búsqueda. |
+| **GET** | `/api/v1/productos/busqueda` | Público | [v2.3] **Solo referencia** — Buscador de productos con precios para el frontend. No es consumido por el scraper. |
 
 ---
 
@@ -246,3 +247,53 @@ Envía todos los productos extraídos de la grilla de resultados para que el bac
 *   **HTTP 400 Bad Request**: Lista vacía o campos obligatorios faltantes.
 *   **HTTP 401 Unauthorized**: Token ausente o expirado.
 *   **HTTP 403 Forbidden**: El usuario no tiene `ROLE_ADMIN`.
+
+---
+
+## Referencia: Endpoints de Consumo del Frontend (No usados por el Scraper)
+
+Estos endpoints son generados por el backend a partir de los datos recolectados por el scraper, pero son consumidos directamente por la aplicación frontend (React/móvil). Se documentan aquí como referencia de la arquitectura completa.
+
+### GET /api/v1/productos/busqueda [v2.3]
+
+Permite al usuario final buscar productos y ver sus precios comparativos en tiempo real, cruzando el catálogo maestro con el último precio registrado por supermercado.
+
+*   **Ruta**: `/api/v1/productos/busqueda`
+*   **Método**: `GET`
+*   **Seguridad**: Público (`permitAll` — no requiere JWT)
+*   **Query Params**:
+    *   `q` (opcional): Término de búsqueda por nombre genérico o marca del producto. Si se omite, devuelve todos.
+    *   `page` (opcional, default `0`): Número de página.
+    *   `size` (opcional, default `10`): Resultados por página.
+    *   `sort` (opcional): Campo y dirección de ordenamiento.
+
+### Respuesta Exitosa (HTTP 200 OK)
+```json
+{
+  "status": 200,
+  "message": null,
+  "data": {
+    "content": [
+      {
+        "id": 5,
+        "marca": "Lucchetti",
+        "nombreGenerico": "Fideos Spaghetti",
+        "categoria": "Pastas",
+        "pesoUnidad": "g",
+        "pesoValor": 500.0,
+        "varianteEspecifica": null,
+        "urlEspecifica": "https://www.vea.com.ar/fideos-lucchetti-spaghetti-500g/p",
+        "supermercado": "Vea",
+        "urlImagen": "https://www.vea.com.ar/medias/fideos-lucchetti.jpg",
+        "precio": 1250.50
+      }
+    ],
+    "totalElements": 1,
+    "totalPages": 1,
+    "number": 0,
+    "size": 10
+  }
+}
+```
+
+> **Nota arquitectural:** Los datos que devuelve este endpoint son generados por el pipeline de ingesta del scraper (`POST /api/v1/extractor/ingesta-masiva`). El scraper alimenta el sistema; el frontend consume los resultados a través de este endpoint de búsqueda.

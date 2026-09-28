@@ -93,6 +93,11 @@
   - Response: ApiResponse<Page<ProductoDto>>
   - Controlador: ProductoController
   - Seguridad: público (permitAll)
+- GET /api/v1/productos/busqueda
+  - Descripción: Busca productos por nombre o marca y devuelve los resultados combinados con su último precio y supermercado.
+  - Query Params: q (término de búsqueda), page, size, sort
+  - Response: ApiResponse<Page<ProductoBusquedaDto>>
+  - Seguridad: público (permitAll)
 - GET /api/v1/productos/{id}
   - Descripción: Obtiene un producto maestro específico por su ID.
   - Response: ApiResponse<ProductoDto>

@@ -1,5 +1,6 @@
 package com.tesis.demo.service;
 
+import com.tesis.demo.dto.ProductoBusquedaDto;
 import com.tesis.demo.dto.ProductoComparativoDto;
 import com.tesis.demo.dto.ProductoDto;
 import com.tesis.demo.model.Categoria;
@@ -68,6 +69,12 @@ public class ProductoServiceImpl implements ProductoService {
     public Page<ProductoDto> buscar(String nombre, String marca, Long categoriaId, Pageable pageable) {
         return productoRepository.buscarAvanzado(nombre, marca, categoriaId, pageable)
                 .map(this::toDto);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductoBusquedaDto> buscarConPrecios(String query, Pageable pageable) {
+        return historialPrecioRepository.buscarProductosConPrecios(query, pageable);
     }
 
     @Override

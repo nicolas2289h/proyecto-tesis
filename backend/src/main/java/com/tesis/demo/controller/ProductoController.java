@@ -1,6 +1,7 @@
 package com.tesis.demo.controller;
 
 import com.tesis.demo.dto.ApiResponse;
+import com.tesis.demo.dto.ProductoBusquedaDto;
 import com.tesis.demo.dto.ProductoComparativoDto;
 import com.tesis.demo.dto.ProductoDto;
 import com.tesis.demo.service.ProductoService;
@@ -42,6 +43,13 @@ public class ProductoController {
             @RequestParam(required = false) Long categoriaId,
             @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(productoService.buscar(nombre, marca, categoriaId, pageable)));
+    }
+
+    @GetMapping("/busqueda")
+    public ResponseEntity<ApiResponse<Page<ProductoBusquedaDto>>> buscarConPrecios(
+            @RequestParam(required = false) String q,
+            @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(productoService.buscarConPrecios(q, pageable)));
     }
 
     @PutMapping("/{id}")

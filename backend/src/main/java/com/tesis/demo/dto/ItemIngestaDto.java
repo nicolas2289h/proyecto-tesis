@@ -55,6 +55,7 @@ public class ItemIngestaDto {
     /**
      * URL de la imagen del producto en la tienda específica.
      * Ejemplo: "https://supermercado.com.ar/imagenes/fideo.jpg".
+     * Puede ser null si el scraper no encontró imagen.
      */
     private String urlImagen;
 }
