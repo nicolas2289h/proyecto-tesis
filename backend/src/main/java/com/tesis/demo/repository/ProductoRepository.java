@@ -62,7 +62,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             "CONCAT(" +
             "  COALESCE(p.nombre_generico, ''), " +
             "  CASE WHEN COALESCE(p.variante_especifica, '') = '' THEN '' ELSE CONCAT(' ', p.variante_especifica) END, " +
-            "  CASE WHEN p.peso_valor IS NULL THEN '' ELSE CONCAT(' ', CAST(p.peso_valor AS CHAR)) END, " +
+            "  CASE WHEN p.peso_valor IS NULL THEN '' ELSE CONCAT(' ', CAST(p.peso_valor AS VARCHAR)) END, " +
             "  CASE WHEN COALESCE(p.peso_unidad, '') = '' THEN '' ELSE CONCAT(' ', p.peso_unidad) END " +
             ") AS producto, " +
             "p.marca, " +
