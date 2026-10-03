@@ -63,7 +63,8 @@ public interface HistorialPrecioRepository extends JpaRepository<HistorialPrecio
            "    FROM HistorialPrecio hp2 " +
            "    WHERE hp2.productoTienda.id = pt.id" +
            ") " +
-           "AND (:query IS NULL OR LOWER(p.nombreGenerico) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "     OR LOWER(p.marca) LIKE LOWER(CONCAT('%', :query, '%')))")
-    Page<ProductoBusquedaDto> buscarProductosConPrecios(@Param("query") String query, Pageable pageable);
+           "AND (:query IS NULL OR :query = '' OR LOWER(p.nombreGenerico) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')) " +
+           "     OR LOWER(p.marca) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%'))) " +
+           "AND (:supermercadoId IS NULL OR s.id = :supermercadoId)")
+    Page<ProductoBusquedaDto> buscarProductosConPrecios(@Param("query") String query, @Param("supermercadoId") Long supermercadoId, Pageable pageable);
 }

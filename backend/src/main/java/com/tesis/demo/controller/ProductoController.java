@@ -48,8 +48,9 @@ public class ProductoController {
     @GetMapping("/busqueda")
     public ResponseEntity<ApiResponse<Page<ProductoBusquedaDto>>> buscarConPrecios(
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long supermercadoId,
             @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(productoService.buscarConPrecios(q, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(productoService.buscarConPrecios(q, supermercadoId, pageable)));
     }
 
     @PutMapping("/{id}")

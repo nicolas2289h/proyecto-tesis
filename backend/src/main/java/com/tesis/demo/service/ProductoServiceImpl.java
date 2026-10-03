@@ -73,8 +73,8 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ProductoBusquedaDto> buscarConPrecios(String query, Pageable pageable) {
-        return historialPrecioRepository.buscarProductosConPrecios(query, pageable);
+    public Page<ProductoBusquedaDto> buscarConPrecios(String query, Long supermercadoId, Pageable pageable) {
+        return historialPrecioRepository.buscarProductosConPrecios(query, supermercadoId, pageable);
     }
 
     @Override
