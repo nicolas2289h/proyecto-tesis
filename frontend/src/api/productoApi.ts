@@ -12,19 +12,25 @@ const normalizeProducto = (raw: any): ProductoBusqueda => ({
   marca: raw?.marca ?? 'Sin marca',
   precio: Number(raw?.precio ?? raw?.precioActual ?? 0),
   urlImagen: buildImageUrl(raw?.urlImagen),
-  nombreSupermercado: raw?.nombreSupermercado ?? raw?.supermercado ?? raw?.supermercadoNombre ?? 'Sin supermercado',
+  nombreSupermercado: raw?.supermercado ?? raw?.nombreSupermercado ?? raw?.supermercadoNombre ?? 'Sin supermercado',
   descripcion: raw?.descripcion ?? null,
+  categoria: raw?.categoria ?? undefined,
+  pesoValor: raw?.pesoValor ?? undefined,
+  pesoUnidad: raw?.pesoUnidad ?? undefined,
+  varianteEspecifica: raw?.varianteEspecifica ?? undefined,
+  urlEspecifica: raw?.urlEspecifica ?? undefined,
 })
 
 export const productoApi = {
   buscar: async (nombre?: string, supermercadoId?: number): Promise<ProductoBusqueda[]> => {
     const params = new URLSearchParams()
-    if (nombre) params.append('nombre', nombre)
+    if (nombre) params.append('q', nombre)
     if (supermercadoId) params.append('supermercadoId', supermercadoId.toString())
 
-    const response = await axiosInstance.get<ApiResponse<any[]>>('/precios/buscar', { params })
-    const data = Array.isArray(response.data?.data) ? response.data.data : []
-    return data.map(normalizeProducto).filter(p => p.id > 0 || p.nombreGenerico !== 'Producto sin nombre')
+    const response = await axiosInstance.get<ApiResponse<any>>('/productos/busqueda', { params })
+    // El endpoint /busqueda devuelve un objeto Page; los resultados estan en .data.content
+    const data = Array.isArray(response.data?.data?.content) ? response.data.data.content : []
+    return data.map(normalizeProducto).filter((p: ProductoBusqueda) => p.id > 0 || p.nombreGenerico !== 'Producto sin nombre')
   },
 
   obtenerComparativos: async (): Promise<any[]> => {

@@ -12,6 +12,12 @@ export interface ProductoBusqueda {
   urlImagen?: string
   nombreSupermercado: string
   descripcion?: string
+  // Campos atomicos del nuevo endpoint /busqueda
+  categoria?: string
+  pesoValor?: number
+  pesoUnidad?: string
+  varianteEspecifica?: string
+  urlEspecifica?: string
 }
 
 export interface ApiResponse<T> {
