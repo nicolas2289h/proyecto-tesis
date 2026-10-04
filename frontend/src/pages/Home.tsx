@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Supermercado, ProductoBusqueda, ListaCompra } from '../types/Supermercado'
 import { productoApi } from '../api/productoApi'
@@ -6,14 +6,7 @@ import { supermercadoApi } from '../api/supermercadoApi'
 import { listaApi } from '../api/listaApi'
 import { useAuthStore } from '../store/authStore'
 
-interface ProductoComparativo {
-  id: number
-  producto: string
-  marca: string
-  precio: number
-  urlImagen: string
-  supermercado: string
-}
+const PAGE_SIZE = 12
 
 export default function Home() {
   const navigate = useNavigate()
@@ -24,16 +17,14 @@ export default function Home() {
   const [sortOrder, setSortOrder] = useState<'default' | 'asc' | 'desc'>('default')
   const [supermarkets, setSupermarkets] = useState<Supermercado[]>([])
   const [products, setProducts] = useState<ProductoBusqueda[]>([])
-  const [productosComparativos, setProductosComparativos] = useState<ProductoComparativo[]>([])
   const [loading, setLoading] = useState(true)
   const [searching, setSearching] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Filtros para productos comparativos
-  const [filtroMarcaComparativos, setFiltroMarcaComparativos] = useState('')
-  const [filtroProductoComparativos, setFiltroProductoComparativos] = useState('')
-  const [filtroSupermercadoComparativos, setFiltroSupermercadoComparativos] = useState('')
-  const [sortOrderComparativos, setSortOrderComparativos] = useState<'default' | 'asc' | 'desc'>('desc')
+  // Paginación (server-side, /productos/busqueda)
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
 
   const [showModal, setShowModal] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<ProductoBusqueda | null>(null)
@@ -48,10 +39,9 @@ export default function Home() {
   const fetchInitial = async () => {
     setLoading(true)
     setError(null)
-    const [supersResult, listasResult, comparativosResult] = await Promise.allSettled([
+    const [supersResult, listasResult] = await Promise.allSettled([
       supermercadoApi.getAll(),
       isAuthenticated ? listaApi.getAll() : Promise.resolve([]),
-      productoApi.obtenerComparativos(),
     ])
 
     let supers: Supermercado[] = []
@@ -72,12 +62,6 @@ export default function Home() {
       }
     }
 
-    if (comparativosResult.status === 'fulfilled') {
-      setProductosComparativos(comparativosResult.value)
-    } else {
-      console.warn('Error cargando productos comparativos:', comparativosResult.reason)
-    }
-
     if (supersResult.status === 'rejected') {
       console.error('Error cargando supermercados:', supersResult.reason)
       setError('No se pudieron cargar los supermercados. Revisá la conexión con el backend.')
@@ -89,13 +73,20 @@ export default function Home() {
     return supers
   }
 
-  const fetchProducts = async (nombre: string, supermercadoId: number | 'all') => {
+  const fetchProducts = async (nombre: string, supermercadoId: number | 'all', pageNumber = 0, currentSortOrder = sortOrder) => {
     try {
       setSearching(true)
       setError(null)
       const sid = supermercadoId === 'all' ? undefined : Number(supermercadoId)
-      const prods = await productoApi.buscar(nombre || undefined, sid)
-      setProducts(prods)
+
+      let sortParam = undefined
+      if (currentSortOrder === 'asc') sortParam = 'precio,asc'
+      else if (currentSortOrder === 'desc') sortParam = 'precio,desc'
+
+      const result = await productoApi.buscarPaginado(nombre || undefined, sid, pageNumber, PAGE_SIZE, sortParam)
+      setProducts(result.items)
+      setTotalPages(result.totalPages)
+      setTotalElements(result.totalElements)
     } catch (err) {
       console.error('Error buscando productos:', err)
       setError('No se pudieron cargar los productos. Revisá la conexión con el backend.')
@@ -126,45 +117,21 @@ export default function Home() {
   }, [searchTerm])
 
   useEffect(() => {
-    fetchProducts(appliedSearch, filterSupermarket)
-  }, [appliedSearch, filterSupermarket])
+    setPage(0)
+    fetchProducts(appliedSearch, filterSupermarket, 0, sortOrder)
+  }, [appliedSearch, filterSupermarket, sortOrder])
 
-  const filteredProducts = useMemo<ProductoBusqueda[]>(() => {
-    const list = [...products]
-    if (sortOrder === 'asc') list.sort((a, b) => a.precio - b.precio)
-    else if (sortOrder === 'desc') list.sort((a, b) => b.precio - a.precio)
-    return list
-  }, [products, sortOrder])
+  const goToPage = (newPage: number) => {
+    setPage(newPage)
+    fetchProducts(appliedSearch, filterSupermarket, newPage, sortOrder)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
-  // Filtrar y ordenar productos comparativos
-  const productosFiltradosPorProductoYMarca = useMemo(() => {
-    return productosComparativos.filter(p => {
-      const coincideProducto = !filtroProductoComparativos || 
-        p.producto.toLowerCase().includes(filtroProductoComparativos.toLowerCase())
-      const coincideMarca = !filtroMarcaComparativos || 
-        p.marca.toLowerCase().includes(filtroMarcaComparativos.toLowerCase())
-      return coincideProducto && coincideMarca
-    })
-  }, [productosComparativos, filtroProductoComparativos, filtroMarcaComparativos])
+  const nombreCompleto = (p: ProductoBusqueda) =>
+    [p.nombreGenerico, p.varianteEspecifica, p.pesoValor ? `${p.pesoValor}${p.pesoUnidad ? ' ' + p.pesoUnidad : ''}` : '']
+      .filter(Boolean)
+      .join(' ')
 
-  const supermercadosComparativos = useMemo(() => {
-    return [...new Set(productosFiltradosPorProductoYMarca.map(p => p.supermercado))].sort()
-  }, [productosFiltradosPorProductoYMarca])
-
-  const productosFiltradosComparativos = useMemo(() => {
-    return productosFiltradosPorProductoYMarca.filter(p => {
-      const coincideSupermercado = !filtroSupermercadoComparativos || 
-        p.supermercado === filtroSupermercadoComparativos
-      return coincideSupermercado
-    })
-  }, [productosFiltradosPorProductoYMarca, filtroSupermercadoComparativos])
-
-  const productosOrdenadosComparativos = useMemo<ProductoComparativo[]>(() => {
-    const list = [...productosFiltradosComparativos]
-    if (sortOrderComparativos === 'asc') list.sort((a, b) => a.precio - b.precio)
-    else if (sortOrderComparativos === 'desc') list.sort((a, b) => b.precio - a.precio)
-    return list
-  }, [productosFiltradosComparativos, sortOrderComparativos])
 
   const openAddModal = (product: ProductoBusqueda) => {
     if (!isAuthenticated) {
@@ -180,7 +147,7 @@ export default function Home() {
 
   const handleAddToList = async () => {
     if (!selectedProduct || selectedListId === '') return
-    
+
     setAdding(true)
     try {
       let productId = selectedProduct.id
@@ -235,21 +202,18 @@ export default function Home() {
         <p className="subtitle">Encontrá los mejores precios y ahorrá en cada compra.</p>
 
         <div className="controls-container">
-          {/* Mostrar búsqueda solo cuando hay filtro activo de búsqueda */}
-          {appliedSearch || filterSupermarket !== 'all' && (
-            <div className="search-container">
-              <input
-                type="text"
-                placeholder="¿Qué estás buscando hoy? (ej: fideo, arroz, aceite)"
-                className="search-input"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          )}
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="¿Qué estás buscando hoy? (ej: fideo, arroz, aceite)"
+              className="search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
           {/* Filtros para búsqueda de productos */}
-          {appliedSearch || filterSupermarket !== 'all' ? (
+          {(
             <div className="filters-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <div className="filter-group">
                 <label>🏪 Supermercado:</label>
@@ -272,65 +236,6 @@ export default function Home() {
                   <option value="default">Por defecto</option>
                   <option value="asc">Precio: Menor a Mayor</option>
                   <option value="desc">Precio: Mayor a Menor</option>
-                </select>
-              </div>
-            </div>
-          ) : (
-            /* Filtros para productos comparativos - mostrados en inicio */
-            <div className="filters-bar" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', placeItems: 'start' }}>
-              <div className="filter-group" style={{ width: '100%' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>
-                  📦 Producto:
-                </label>
-                <input
-                  type="text"
-                  placeholder="Filtrar por producto..."
-                  className="search-input"
-                  value={filtroProductoComparativos}
-                  onChange={(e) => setFiltroProductoComparativos(e.target.value)}
-                  style={{ margin: 0, width: '100%' }}
-                />
-              </div>
-              <div className="filter-group" style={{ width: '100%' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>
-                  🏷️ Marca:
-                </label>
-                <input
-                  type="text"
-                  placeholder="Filtrar por marca..."
-                  className="search-input"
-                  value={filtroMarcaComparativos}
-                  onChange={(e) => setFiltroMarcaComparativos(e.target.value)}
-                  style={{ margin: 0, width: '100%' }}
-                />
-              </div>
-              <div className="filter-group" style={{ width: '100%' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>
-                  🏪 Supermercado:
-                </label>
-                <select
-                  value={filtroSupermercadoComparativos}
-                  onChange={(e) => setFiltroSupermercadoComparativos(e.target.value)}
-                  style={{ width: '100%' }}
-                >
-                  <option value="">Todos los supermercados</option>
-                  {supermercadosComparativos.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="filter-group" style={{ width: '100%' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: '600' }}>
-                  💰 Precio:
-                </label>
-                <select
-                  value={sortOrderComparativos}
-                  onChange={(e) => setSortOrderComparativos(e.target.value as 'default' | 'asc' | 'desc')}
-                  style={{ width: '100%' }}
-                >
-                  <option value="default">Por defecto</option>
-                  <option value="asc">Menor a Mayor</option>
-                  <option value="desc">Mayor a Menor</option>
                 </select>
               </div>
             </div>
@@ -373,132 +278,76 @@ export default function Home() {
               <div className="results-summary">
                 {searching ? (
                   <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>🔄 Buscando...</span>
-                ) : appliedSearch || filterSupermarket !== 'all' ? (
-                  <>Mostrando <strong>{filteredProducts.length}</strong> producto{filteredProducts.length !== 1 ? 's' : ''} filtrados</>
                 ) : (
-                  <>📊 Productos Destacados - <strong>{productosOrdenadosComparativos.length}</strong> producto{productosOrdenadosComparativos.length !== 1 ? 's' : ''}</>
+                  <>Mostrando <strong>{products.length}</strong> de <strong>{totalElements}</strong> producto{totalElements !== 1 ? 's' : ''}</>
                 )}
               </div>
 
-              {/* Mostrar resultados de búsqueda si hay búsqueda o filtro */}
-              {(appliedSearch || filterSupermarket !== 'all') ? (
-                filteredProducts.length > 0 ? (
-                  <div className="product-grid">
-                    {filteredProducts.map((product) => (
-                      <div key={`${product.id}-${product.nombreSupermercado}`} className="product-card">
-                        <div className="product-image-container">
-                          <img
-                            src={product.urlImagen || 'https://via.placeholder.com/400?text=Producto'}
-                            alt={product.nombreGenerico}
-                            className="product-image"
-                            loading="lazy"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              if (!target.dataset.fallback) {
-                                target.dataset.fallback = '1'
-                                target.src = 'https://via.placeholder.com/400x400.png?text=Sin+imagen'
-                              }
-                            }}
-                          />
-                          <span className="product-super-badge">{product.nombreSupermercado}</span>
+              {/* Resultados paginados de /productos/busqueda (con o sin término de búsqueda) */}
+              {products.length > 0 ? (
+                <div className="product-grid">
+                  {products.map((product) => (
+                    <div key={`${product.id}-${product.nombreSupermercado}`} className="product-card">
+                      <div className="product-image-container">
+                        <img
+                          src={product.urlImagen || 'https://via.placeholder.com/400?text=Producto'}
+                          alt={product.nombreGenerico}
+                          className="product-image"
+                          loading="lazy"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            if (!target.dataset.fallback) {
+                              target.dataset.fallback = '1'
+                              target.src = 'https://via.placeholder.com/400x400.png?text=Sin+imagen'
+                            }
+                          }}
+                        />
+                        <span className="product-super-badge">{product.nombreSupermercado}</span>
+                      </div>
+                      <div className="product-info">
+                        <div className="product-header">
+                          <span className="product-category">{product.marca || 'Sin marca'}</span>
                         </div>
-                        <div className="product-info">
-                          <div className="product-header">
-                            <span className="product-category">{product.marca || 'Sin marca'}</span>
-                          </div>
-                          <h3 className="product-name">{product.nombreGenerico}</h3>
-                          <p className="product-description">
-                            {product.descripcion || 'Sin descripción disponible.'}
-                          </p>
-                          <div className="product-footer">
-                            <p className="product-price">${Number(product.precio || 0).toLocaleString('es-AR')}</p>
-                            <button
-                              className="product-action-btn"
-                              onClick={() => openAddModal(product)}
-                              onMouseEnter={refreshLists}
-                            >
-                              Agregar
-                            </button>
-                          </div>
+                        <h3 className="product-name">{nombreCompleto(product)}</h3>
+
+                        <div className="product-footer">
+                          <p className="product-price">${Number(product.precio || 0).toLocaleString('es-AR')}</p>
+                          <button
+                            className="product-action-btn"
+                            onClick={() => openAddModal(product)}
+                            onMouseEnter={refreshLists}
+                          >
+                            Agregar
+                          </button>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="no-results-container">
-                    <p className="no-results">No se encontraron productos que coincidan con tu búsqueda.</p>
-                    <p className="no-results-hint">Probá con otro término, cambiá el supermercado o verificá que el scraper haya cargado precios.</p>
-                  </div>
-                )
+                    </div>
+                  ))}
+                </div>
               ) : (
-                /* Mostrar productos comparativos cuando no hay búsqueda */
-                productosOrdenadosComparativos.length > 0 ? (
-                  <div className="product-grid">
-                    {productosOrdenadosComparativos.map((product, index) => (
-                      <div key={`comparativo-${index}`} className="product-card">
-                        <div className="product-image-container">
-                          <img
-                            src={product.urlImagen || 'https://via.placeholder.com/400?text=Producto'}
-                            alt={product.producto}
-                            className="product-image"
-                            loading="lazy"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              if (!target.dataset.fallback) {
-                                target.dataset.fallback = '1'
-                                target.src = 'https://via.placeholder.com/400x400.png?text=Sin+imagen'
-                              }
-                            }}
-                          />
-                          <span className="product-super-badge">🏪 {product.supermercado}</span>
-                        </div>
-                        <div className="product-info">
-                          <div className="product-header">
-                            <span className="product-category">{product.marca || 'Sin marca'}</span>
-                          </div>
-                          <h3 className="product-name">{product.producto}</h3>
-                          <p className="product-description">
-                            Producto destacado
-                          </p>
-                          <div className="product-footer">
-                            <p className="product-price">${Number(product.precio || 0).toLocaleString('es-AR')}</p>
-                            <button
-                              className="product-action-btn"
-                              onClick={() => {
-                                if (!isAuthenticated) {
-                                  navigate('/login')
-                                  return
-                                }
-                                setSelectedProduct({ 
-                                  id: product.id,
-                                  nombreGenerico: product.producto,
-                                  marca: product.marca || '',
-                                  precio: product.precio,
-                                  nombreSupermercado: product.supermercado,
-                                  urlImagen: product.urlImagen,
-                                  varianteEspecifica: '',
-                                  descripcion: ''
-                                } as ProductoBusqueda)
-                                setSelectedListId(listOptions.length ? String(listOptions[0].id) : '')
-                                setQuantity(1)
-                                setShowModal(true)
-                                setSuccessMsg(null)
-                              }}
-                              onMouseEnter={refreshLists}
-                            >
-                              Agregar
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="no-results-container">
-                    <p className="no-results">No hay productos disponibles en este momento.</p>
-                    <p className="no-results-hint">Probá realizando una búsqueda específica.</p>
-                  </div>
-                )
+                <div className="no-results-container">
+                  <p className="no-results">No se encontraron productos que coincidan con tu búsqueda.</p>
+                </div>
+              )}
+
+              {totalPages > 1 && (
+                <nav className="pagination" aria-label="Paginación de productos">
+                  <button
+                    className="btn btn-secondary pagination-btn"
+                    disabled={page === 0 || searching}
+                    onClick={() => goToPage(page - 1)}
+                  >
+                    ← Anterior
+                  </button>
+                  <span className="pagination-info">Página {page + 1} de {totalPages}</span>
+                  <button
+                    className="btn btn-secondary pagination-btn"
+                    disabled={page >= totalPages - 1 || searching}
+                    onClick={() => goToPage(page + 1)}
+                  >
+                    Siguiente →
+                  </button>
+                </nav>
               )}
             </>
           )}
@@ -655,6 +504,11 @@ export default function Home() {
         }
         .product-action-btn:hover { filter: brightness(0.95); transform: scale(1.04); }
         .product-action-btn:active { transform: scale(0.97); }
+
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 1.25rem; margin-top: 2.5rem; flex-wrap: wrap; }
+        .pagination-btn { width: auto; padding: 0.6rem 1.25rem; margin: 0; }
+        .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination-info { color: var(--text-muted); font-weight: 600; font-size: 0.95rem; }
 
         .no-results-container { width: 100%; grid-column: 1/-1; text-align: center; padding: 3rem 1rem; }
         .no-results { color: var(--text-muted); font-size: 1.1rem; margin: 0 0 0.5rem 0; }
