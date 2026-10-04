@@ -49,7 +49,7 @@ public class ProductoController {
     public ResponseEntity<ApiResponse<Page<ProductoBusquedaDto>>> buscarConPrecios(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) Long supermercadoId,
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(size = 10, sort = {"productoTienda.id"}) Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(productoService.buscarConPrecios(q, supermercadoId, pageable)));
     }
 
