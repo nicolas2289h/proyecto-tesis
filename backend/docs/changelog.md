@@ -9,10 +9,16 @@
   - Creado `DataInitializer` para poblar automáticamente la base de datos en entornos de desarrollo con roles (`ADMIN`, `USER`), supermercados básicos y usuarios de prueba.
 - **Búsqueda y Comparativa:**
   - Añadido el endpoint `GET /api/v1/productos/comparativo/todos` para devolver la grilla de productos con su último precio.
-  - Añadido el endpoint `GET /api/v1/precios/buscar` para buscar productos por nombre o supermercado con su precio más reciente.
+  - Añadido el endpoint `GET /api/v1/precios/buscar` para buscar productos por nombre o supermercado con su precio más reciente. *(Ahora obsoleto a favor de /busqueda)*.
   - Creado `ProductoBusquedaDto` para aplanar la respuesta de la información del producto, el supermercado y el precio actual.
   - Añadida consulta JPQL optimizada en `HistorialPrecioRepository` para extraer el último precio de cada tienda mediante subconsultas.
-  - Expuesto nuevo endpoint `GET /api/v1/productos/busqueda` que une el maestro de productos con su último precio registrado y es accesible por cualquier usuario autenticado.
+  - Expuesto nuevo endpoint `GET /api/v1/productos/busqueda` que une el maestro de productos con su último precio registrado y es accesible por cualquier usuario autenticado, reemplazando a la antigua ruta.
+- **Correcciones (Hotfixes):**
+  - Se parcheó un error de casteo en PostgreSQL (`no existe la función lower(bytea)`) forzando un `CAST(:query AS string)` en el respositorio JPQL.
+  - Se corrigió el error visual de truncamiento del peso (de `90` a `9`) en la interfaz cambiando `CAST(p.peso_valor AS CHAR)` a `VARCHAR` en la consulta nativa SQL.
+  - Se actualizó completamente el Frontend (`Home.tsx`, `productoApi.ts`) para consumir el nuevo endpoint `/busqueda` paginado, incluyendo controles visuales y estado de paginación real.
+  - Se delegó el ordenamiento por precio directamente al backend mediante la interfaz `PaginaProductos` y el envío dinámico del parámetro `sort` desde React.
+  - Se añadió un ordenamiento por defecto estable (`sort = {"productoTienda.id"}`) en el endpoint `GET /api/v1/productos/busqueda` del backend para garantizar la consistencia en la paginación.
 - **Manejo de Errores:**
   - Implementado `GlobalExceptionHandler` para centralizar y estandarizar las respuestas de error en formato `ApiResponse`.
 ## [v2.2] - Persistencia de Imágenes de Productos

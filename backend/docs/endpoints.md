@@ -95,7 +95,7 @@
   - Seguridad: público (permitAll)
 - GET /api/v1/productos/busqueda
   - Descripción: Busca productos por nombre o marca y devuelve los resultados combinados con su último precio y supermercado.
-  - Query Params: q (término de búsqueda), page, size, sort
+  - Query Params: q (término de búsqueda), supermercadoId (opcional), page, size, sort
   - Response: ApiResponse<Page<ProductoBusquedaDto>>
   - Seguridad: público (permitAll)
 - GET /api/v1/productos/{id}
@@ -230,13 +230,13 @@
   - Seguridad: requiere JWT
   - Uso principal: Dashboard de Tendencias y evolución de precios global por producto genérico.
 
-- GET /api/v1/precios/buscar
-  - Descripción: Busca productos con su último precio disponible, filtrando por nombre y/o supermercado.
-  - Query Params: nombre (opcional, para filtrar por nombre del producto), supermercadoId (opcional, para filtrar por supermercado)
-  - Response: ApiResponse<List<ProductoBusquedaDto>> con: { id, nombreGenerico, marca, urlImagen, nombreSupermercado, precio }
+- GET /api/v1/precios/buscar *(Obsoleto)*
+  - Descripción: Busca productos con su último precio disponible, filtrando por nombre y/o supermercado. Fue reemplazado por `/api/v1/productos/busqueda`.
+  - Query Params: nombre (opcional), supermercadoId (opcional)
+  - Response: ApiResponse<List<ProductoBusquedaDto>>
   - Controlador: HistorialPrecioController
-  - Seguridad: requiere JWT
-  - Uso principal: página de inicio para búsqueda y comparación de precios
+  - Seguridad: público (permitAll)
+  - Uso principal: *Legacy* - Anteriormente usado en página de inicio.
 
 ## Mis Listas
 - POST /api/v1/listas
