@@ -12,7 +12,8 @@ public interface ProductoService {
     ProductoDto crear(ProductoDto dto);
     ProductoDto obtenerPorId(Long id);
     Page<ProductoDto> buscar(String nombre, String marca, Long categoriaId, Pageable pageable);
-    Page<ProductoBusquedaDto> buscarConPrecios(String query, Long supermercadoId, Pageable pageable);
+    Page<ProductoBusquedaDto> buscarConPrecios(String query, String marca, Long supermercadoId, Pageable pageable);
+    List<String> obtenerMarcasDisponibles(String query, Long supermercadoId);
     ProductoDto actualizar(Long id, ProductoDto dto);
     void eliminar(Long id);
     void eliminarMasivo(List<Long> ids);

@@ -65,6 +65,25 @@ public interface HistorialPrecioRepository extends JpaRepository<HistorialPrecio
            ") " +
            "AND (:query IS NULL OR :query = '' OR LOWER(p.nombreGenerico) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')) " +
            "     OR LOWER(p.marca) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%'))) " +
+           "AND (:marca IS NULL OR :marca = '' OR LOWER(p.marca) = LOWER(CAST(:marca AS string))) " +
            "AND (:supermercadoId IS NULL OR s.id = :supermercadoId)")
-    Page<ProductoBusquedaDto> buscarProductosConPrecios(@Param("query") String query, @Param("supermercadoId") Long supermercadoId, Pageable pageable);
+    Page<ProductoBusquedaDto> buscarProductosConPrecios(@Param("query") String query, @Param("marca") String marca, @Param("supermercadoId") Long supermercadoId, Pageable pageable);
+
+    @Query("SELECT DISTINCT p.marca " +
+           "FROM HistorialPrecio hp " +
+           "JOIN hp.productoTienda pt " +
+           "JOIN pt.producto p " +
+           "JOIN pt.supermercado s " +
+           "WHERE hp.fechaRecoleccion = (" +
+           "    SELECT MAX(hp2.fechaRecoleccion) " +
+           "    FROM HistorialPrecio hp2 " +
+           "    WHERE hp2.productoTienda.id = pt.id" +
+           ") " +
+           "AND p.marca IS NOT NULL " +
+           "AND TRIM(p.marca) != '' " +
+           "AND (:query IS NULL OR :query = '' OR LOWER(p.nombreGenerico) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%')) " +
+           "     OR LOWER(p.marca) LIKE LOWER(CONCAT('%', CAST(:query AS string), '%'))) " +
+           "AND (:supermercadoId IS NULL OR s.id = :supermercadoId) " +
+           "ORDER BY p.marca ASC")
+    List<String> obtenerMarcasDisponibles(@Param("query") String query, @Param("supermercadoId") Long supermercadoId);
 }

@@ -48,9 +48,17 @@ public class ProductoController {
     @GetMapping("/busqueda")
     public ResponseEntity<ApiResponse<Page<ProductoBusquedaDto>>> buscarConPrecios(
             @RequestParam(required = false) String q,
+            @RequestParam(required = false) String marca,
             @RequestParam(required = false) Long supermercadoId,
             @PageableDefault(size = 10, sort = {"productoTienda.id"}) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(productoService.buscarConPrecios(q, supermercadoId, pageable)));
+        return ResponseEntity.ok(ApiResponse.success(productoService.buscarConPrecios(q, marca, supermercadoId, pageable)));
+    }
+
+    @GetMapping("/busqueda/marcas")
+    public ResponseEntity<ApiResponse<List<String>>> obtenerMarcasDisponibles(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long supermercadoId) {
+        return ResponseEntity.ok(ApiResponse.success(productoService.obtenerMarcasDisponibles(q, supermercadoId)));
     }
 
     @PutMapping("/{id}")
