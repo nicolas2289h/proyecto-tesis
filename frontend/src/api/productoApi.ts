@@ -35,10 +35,12 @@ export const productoApi = {
     page = 0,
     size = 15,
     sort?: string,
+    marca?: string,
   ): Promise<PaginaProductos> => {
     const params = new URLSearchParams()
     if (nombre) params.append('q', nombre)
     if (supermercadoId) params.append('supermercadoId', supermercadoId.toString())
+    if (marca) params.append('marca', marca)
     params.append('page', String(page))
     params.append('size', String(size))
     if (sort) params.append('sort', sort)
@@ -58,6 +60,15 @@ export const productoApi = {
   buscar: async (nombre?: string, supermercadoId?: number): Promise<ProductoBusqueda[]> => {
     const result = await productoApi.buscarPaginado(nombre, supermercadoId)
     return result.items
+  },
+
+  obtenerMarcas: async (nombre?: string, supermercadoId?: number): Promise<string[]> => {
+    const params = new URLSearchParams()
+    if (nombre) params.append('q', nombre)
+    if (supermercadoId) params.append('supermercadoId', supermercadoId.toString())
+    
+    const response = await axiosInstance.get<ApiResponse<string[]>>('/productos/busqueda/marcas', { params })
+    return Array.isArray(response.data?.data) ? response.data.data : []
   },
 
   obtenerComparativos: async (): Promise<any[]> => {

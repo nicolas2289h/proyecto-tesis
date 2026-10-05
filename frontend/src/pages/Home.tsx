@@ -14,6 +14,8 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('')
   const [appliedSearch, setAppliedSearch] = useState('')
   const [filterSupermarket, setFilterSupermarket] = useState<number | 'all'>('all')
+  const [filterMarca, setFilterMarca] = useState<string | 'all'>('all')
+  const [availableMarcas, setAvailableMarcas] = useState<string[]>([])
   const [sortOrder, setSortOrder] = useState<'default' | 'asc' | 'desc'>('default')
   const [supermarkets, setSupermarkets] = useState<Supermercado[]>([])
   const [products, setProducts] = useState<ProductoBusqueda[]>([])
@@ -73,20 +75,27 @@ export default function Home() {
     return supers
   }
 
-  const fetchProducts = async (nombre: string, supermercadoId: number | 'all', pageNumber = 0, currentSortOrder = sortOrder) => {
+  const fetchProducts = async (nombre: string, supermercadoId: number | 'all', pageNumber = 0, currentSortOrder = sortOrder, marca = filterMarca) => {
     try {
       setSearching(true)
       setError(null)
       const sid = supermercadoId === 'all' ? undefined : Number(supermercadoId)
+      const m = marca === 'all' ? undefined : marca
 
       let sortParam = undefined
       if (currentSortOrder === 'asc') sortParam = 'precio,asc'
       else if (currentSortOrder === 'desc') sortParam = 'precio,desc'
 
-      const result = await productoApi.buscarPaginado(nombre || undefined, sid, pageNumber, PAGE_SIZE, sortParam)
+      const result = await productoApi.buscarPaginado(nombre || undefined, sid, pageNumber, PAGE_SIZE, sortParam, m)
       setProducts(result.items)
       setTotalPages(result.totalPages)
       setTotalElements(result.totalElements)
+      
+      // Si estamos en la primera página y no hay filtro de marca activo, recargar las marcas disponibles
+      if (pageNumber === 0 && marca === 'all') {
+        const marcas = await productoApi.obtenerMarcas(nombre || undefined, sid)
+        setAvailableMarcas(marcas)
+      }
     } catch (err) {
       console.error('Error buscando productos:', err)
       setError('No se pudieron cargar los productos. Revisá la conexión con el backend.')
@@ -118,12 +127,12 @@ export default function Home() {
 
   useEffect(() => {
     setPage(0)
-    fetchProducts(appliedSearch, filterSupermarket, 0, sortOrder)
-  }, [appliedSearch, filterSupermarket, sortOrder])
+    fetchProducts(appliedSearch, filterSupermarket, 0, sortOrder, filterMarca)
+  }, [appliedSearch, filterSupermarket, sortOrder, filterMarca])
 
   const goToPage = (newPage: number) => {
     setPage(newPage)
-    fetchProducts(appliedSearch, filterSupermarket, newPage, sortOrder)
+    fetchProducts(appliedSearch, filterSupermarket, newPage, sortOrder, filterMarca)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -208,7 +217,10 @@ export default function Home() {
               placeholder="¿Qué estás buscando hoy? (ej: fideo, arroz, aceite)"
               className="search-input"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setFilterMarca('all')
+              }}
             />
           </div>
 
@@ -219,11 +231,27 @@ export default function Home() {
                 <label>🏪 Supermercado:</label>
                 <select
                   value={filterSupermarket}
-                  onChange={(e) => setFilterSupermarket(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  onChange={(e) => {
+                    setFilterSupermarket(e.target.value === 'all' ? 'all' : Number(e.target.value))
+                    setFilterMarca('all')
+                  }}
                 >
                   <option value="all">Todos</option>
                   {supermarkets.map(s => (
                     <option key={s.id} value={s.id}>{s.nombre}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="filter-group">
+                <label>🏷️ Marca:</label>
+                <select
+                  value={filterMarca}
+                  onChange={(e) => setFilterMarca(e.target.value)}
+                  disabled={availableMarcas.length === 0}
+                >
+                  <option value="all">Todas</option>
+                  {availableMarcas.map(m => (
+                    <option key={m} value={m}>{m}</option>
                   ))}
                 </select>
               </div>
