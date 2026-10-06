@@ -41,11 +41,12 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <img src="/Image/Logo.png" alt="AhorraYa Logo" className="navbar-logo" />
-        <span>AhorraYa</span>
+        <Link to="/home">
+          <img src="/Image/Logo.png" alt="AhorraYa Logo" className="navbar-logo" />
+          <span>AhorraYa</span>
+        </Link>
       </div>
       <ul className="navbar-links">
-        <li><Link to="/home">Inicio</Link></li>
         {isAuthenticated && <li><Link to="/mis-listas">Mis Listas</Link></li>}
         {userIsAdmin && (
           <>
@@ -90,6 +91,26 @@ export default function Navbar() {
       </div>
 
       <style>{`
+          .navbar-brand {
+            display: flex;
+            align-items: center;
+          }
+
+          .navbar-brand a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--brand-peach);
+            font-size: 1.4rem;
+            font-weight: 800;
+          }
+
+          .navbar-logo {
+            height: 40px;
+            width: auto;
+            border-radius: 4px;
+          }
         .navbar {
           display: flex; justify-content: space-between; align-items: center;
           padding: 0.75rem 2rem; background-color: var(--brand-blue);
