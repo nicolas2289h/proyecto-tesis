@@ -106,13 +106,7 @@ export default function Home() {
   }
 
   useEffect(() => {
-    let cancelled = false
-    const run = async () => {
-      await fetchInitial()
-      if (!cancelled) fetchProducts('', 'all')
-    }
-    run()
-    return () => { cancelled = true }
+    fetchInitial()
   }, [isAuthenticated])
 
   useEffect(() => {
